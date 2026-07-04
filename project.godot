@@ -23,6 +23,7 @@ SaveSystem="*uid://bv1y5o6lgq7yi"
 SceneManager="*uid://byv4kvn38ec7g"
 GuiTransitions="*uid://lbwvyqfdnu7x"
 SoundManager="*uid://b2wllo35vbjaj"
+GameAudio="*res://Scenes/Autoload/game_audio.gd"
 
 [dialogue_manager]
 

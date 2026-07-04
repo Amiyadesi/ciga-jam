@@ -12,6 +12,7 @@ const AnchorDb = preload("res://Scenes/Game/Survivor/anchor_database.gd")
 @onready var animated_sprite: AnimatedSprite2D = $VisualRoot/AnimatedSprite2D
 @onready var range_area: Area2D = $RangeArea
 @onready var range_shape: CollisionShape2D = $RangeArea/CollisionShape2D
+@onready var attack_range_indicator: Node2D = $AttackRangeIndicator
 @onready var level_label: Label = $LevelLabel
 @onready var hp_label: Label = $HpLabel
 @onready var upgrade_button: Button = $UpgradeButton
@@ -39,6 +40,7 @@ var _is_alive: bool = true
 var _behavior: Node
 var _runtime_modifiers: Dictionary = {}
 var _base_attack_damage: float = 1.0
+var _range_targets: Dictionary = {}
 
 
 # 连接交互按钮，并注册锚点分组。
@@ -46,8 +48,18 @@ func _ready() -> void:
 	add_to_group("anchors")
 	upgrade_button.pressed.connect(func() -> void: upgrade_requested.emit(self))
 	upgrade_button.visible = false
+	if range_area != null:
+		range_area.body_entered.connect(_on_range_area_body_entered)
+		range_area.body_exited.connect(_on_range_area_body_exited)
 	_apply_range_shape()
+	_configure_range_indicator(Color(0.42, 0.75, 1.0, 1.0))
 	_refresh_labels()
+
+
+# 每帧清理无效目标，并根据当前范围内敌人更新提示圈显隐。
+func _physics_process(_delta: float) -> void:
+	_prune_range_targets()
+	_refresh_range_indicator()
 
 
 # 允许左键点击已放置锚点打开详情面板。
@@ -78,15 +90,18 @@ func setup(new_anchor_id: String, new_level: int, stats: Dictionary) -> void:
 	min_damage_ratio = float(stats.get("min_damage_ratio", 0.3))
 	default_animation = StringName(stats.get("default_animation", &"idle"))
 	behavior_params = (stats.get("behavior_params", {}) as Dictionary).duplicate(true)
+	var tint: Color = stats.get("tint", Color(0.42, 0.75, 1.0, 1.0)) as Color
 	if visual != null:
-		visual.color = stats.get("tint", Color(0.42, 0.75, 1.0, 1.0))
+		visual.color = tint
 	if core != null:
 		core.color = Color(0.08, 0.08, 0.14, 1.0)
 	_apply_visual_resource(stats)
 	_apply_runtime_modifiers()
 	_apply_range_shape()
+	_configure_range_indicator(tint)
 	_setup_behavior(stats.get("behavior_scene") as PackedScene)
 	_refresh_labels()
+	_refresh_range_indicator()
 	if animated_sprite != null and animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation(default_animation):
 		animated_sprite.play(default_animation)
 	elif animation_player != null and animation_player.has_animation(default_animation):
@@ -274,3 +289,58 @@ func _setup_behavior(behavior_scene: PackedScene) -> void:
 # 在 setup 或升级后重新套用共享修正。
 func _apply_runtime_modifiers() -> void:
 	attack_damage = _base_attack_damage * float(_runtime_modifiers.get("anchor_attack_multiplier", 1.0))
+
+
+# 记录进入锚点攻击范围的敌人，用于范围圈显隐。
+func _on_range_area_body_entered(body: Node) -> void:
+	if not _is_enemy_range_target(body):
+		return
+	_range_targets[int(body.get_instance_id())] = body
+	_refresh_range_indicator()
+
+
+# 在敌人离开锚点攻击范围后移除对应记录。
+func _on_range_area_body_exited(body: Node) -> void:
+	if body == null:
+		return
+	_range_targets.erase(int(body.get_instance_id()))
+	_refresh_range_indicator()
+
+
+# 清理已死亡或已释放的敌人引用，避免范围圈残留。
+func _prune_range_targets() -> void:
+	if _range_targets.is_empty():
+		return
+	for target_id in _range_targets.keys():
+		var target: Node = _range_targets.get(target_id) as Node
+		if not is_instance_valid(target) or target.is_queued_for_deletion():
+			_range_targets.erase(target_id)
+
+
+# 根据索敌状态或特殊常驻规则更新锚点范围圈。
+func _refresh_range_indicator() -> void:
+	if attack_range_indicator == null:
+		return
+	var should_show: bool = _should_persist_range_indicator() or (not _range_targets.is_empty() and _is_alive)
+	attack_range_indicator.call("set_active", should_show)
+
+
+# 把锚点半径、颜色和常驻模式同步到范围圈实例。
+func _configure_range_indicator(tint: Color) -> void:
+	if attack_range_indicator == null:
+		return
+	attack_range_indicator.call("set_radius", attack_radius)
+	attack_range_indicator.call("set_palette", tint)
+	attack_range_indicator.call("set_persistent_visible", _should_persist_range_indicator())
+
+
+# 判断当前锚点是否应该常驻显示攻击范围。
+func _should_persist_range_indicator() -> bool:
+	if bool(behavior_params.get("persistent_range_indicator", false)):
+		return true
+	return anchor_id == "mine" or anchor_id == "frost_circle"
+
+
+# 判断进入范围区的物体是不是敌人。
+func _is_enemy_range_target(body: Node) -> bool:
+	return body != null and body.is_in_group("enemies")

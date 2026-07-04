@@ -28,6 +28,9 @@ const SkillDb = preload("res://Scenes/Game/Survivor/skill_database.gd")
 @onready var visual_root: Node2D = $Visuals
 @onready var magic_pivot: Node2D = $GunPivot
 @onready var muzzle: Marker2D = $GunPivot/Muzzle
+@onready var attack_range_area: Area2D = $AttackRangeArea
+@onready var attack_range_shape: CollisionShape2D = $AttackRangeArea/CollisionShape2D
+@onready var attack_range_indicator: Node2D = $AttackRangeIndicator
 @onready var sprint_bar: ProgressBar = $SprintBar
 
 const MAX_LEVEL: int = 15
@@ -51,6 +54,7 @@ var _splash_radius: float = 0.0
 var _pierce_enabled: bool = false
 var _pierce_falloff: float = 0.0
 var _damage_cooldown_timer: float = 0.0
+var _attack_range_targets: Dictionary = {}
 
 
 # 初始化玩家状态，并推送第一帧 HUD 数据。
@@ -59,6 +63,13 @@ func _ready() -> void:
 	current_hp = max_hp
 	max_stamina = base_max_stamina
 	current_stamina = max_stamina
+	_apply_attack_range_shape()
+	if attack_range_area != null:
+		attack_range_area.body_entered.connect(_on_attack_range_body_entered)
+		attack_range_area.body_exited.connect(_on_attack_range_body_exited)
+	if attack_range_indicator != null:
+		attack_range_indicator.call("set_radius", attack_range)
+		attack_range_indicator.call("set_active", false)
 	health_changed.emit(current_hp, max_hp)
 	_emit_stamina_changed()
 	_refresh_sprint_bar()
@@ -69,7 +80,9 @@ func _ready() -> void:
 # 驱动移动、冲刺和自动攻击。
 func _physics_process(delta: float) -> void:
 	_damage_cooldown_timer = maxf(0.0, _damage_cooldown_timer - delta)
+	_prune_attack_range_targets()
 	if not _is_alive:
+		_refresh_attack_range_indicator()
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
 		move_and_slide()
 		return
@@ -85,6 +98,7 @@ func _physics_process(delta: float) -> void:
 	_update_facing(input_dir)
 	_update_magic_pivot()
 	_update_auto_attack(delta)
+	_refresh_attack_range_indicator()
 
 
 # 应用存档血量，并防止非法残血把本局锁死。
@@ -170,6 +184,9 @@ func take_damage(amount: int) -> void:
 	_damage_cooldown_timer = damage_invulnerability_duration
 	current_hp = maxi(0, current_hp - amount)
 	health_changed.emit(current_hp, max_hp)
+	var game_audio: Node = get_tree().root.get_node_or_null("GameAudio")
+	if game_audio != null:
+		game_audio.call("play_player_hit")
 	var scene_root: Node = get_tree().current_scene
 	if scene_root != null and scene_root.has_method("apply_screen_shake"):
 		scene_root.call("apply_screen_shake", 0.22, 0.12)
@@ -253,6 +270,9 @@ func _update_auto_attack(delta: float) -> void:
 			"pierce_falloff": _pierce_falloff,
 		}
 	)
+	var game_audio: Node = get_tree().root.get_node_or_null("GameAudio")
+	if game_audio != null:
+		game_audio.call("play_player_attack")
 
 
 # 查找玩家攻击范围内最近的敌人。
@@ -286,6 +306,8 @@ func _get_projectile_parent() -> Node:
 func _die() -> void:
 	_is_alive = false
 	_is_sprinting = false
+	if attack_range_indicator != null:
+		attack_range_indicator.call("set_active", false)
 	_emit_stamina_changed()
 	_refresh_sprint_bar()
 	died.emit()
@@ -322,3 +344,54 @@ func _refresh_sprint_bar() -> void:
 	sprint_bar.max_value = 1.0
 	sprint_bar.value = clampf(ratio, 0.0, 1.0)
 	sprint_bar.visible = _is_sprinting or current_stamina < max_stamina - 0.01
+
+
+# 让玩家的探测范围和实际攻击半径保持一致。
+func _apply_attack_range_shape() -> void:
+	if attack_range_shape == null:
+		return
+	var circle: CircleShape2D = attack_range_shape.shape as CircleShape2D
+	if circle == null:
+		circle = CircleShape2D.new()
+	else:
+		circle = circle.duplicate() as CircleShape2D
+	circle.radius = attack_range
+	attack_range_shape.shape = circle
+
+
+# 记录进入玩家攻击范围的敌人，供范围圈显隐使用。
+func _on_attack_range_body_entered(body: Node) -> void:
+	if not _is_enemy_range_target(body):
+		return
+	_attack_range_targets[int(body.get_instance_id())] = body
+	_refresh_attack_range_indicator()
+
+
+# 在敌人离开攻击范围时移除对应记录。
+func _on_attack_range_body_exited(body: Node) -> void:
+	if body == null:
+		return
+	_attack_range_targets.erase(int(body.get_instance_id()))
+	_refresh_attack_range_indicator()
+
+
+# 清掉已经死亡或已释放的敌人引用，避免范围圈卡住不消失。
+func _prune_attack_range_targets() -> void:
+	if _attack_range_targets.is_empty():
+		return
+	for target_id in _attack_range_targets.keys():
+		var target: Node = _attack_range_targets.get(target_id) as Node
+		if not is_instance_valid(target) or target.is_queued_for_deletion():
+			_attack_range_targets.erase(target_id)
+
+
+# 根据范围内是否仍有敌人刷新玩家范围圈。
+func _refresh_attack_range_indicator() -> void:
+	if attack_range_indicator == null:
+		return
+	attack_range_indicator.call("set_active", _is_alive and not _attack_range_targets.is_empty())
+
+
+# 判断一个进入探测区的物体是不是敌人。
+func _is_enemy_range_target(body: Node) -> bool:
+	return body != null and body.is_in_group("enemies")

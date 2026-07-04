@@ -1,0 +1,23 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/VFX/attack_range_indicator.gd" id="1_indicator"]
+
+[node name="AttackRangeIndicator" type="Node2D"]
+visible = false
+z_index = -1
+script = ExtResource("1_indicator")
+
+[node name="Fill" type="Polygon2D" parent="."]
+color = Color(0.42, 0.8, 1, 0.12)
+
+[node name="GlowRing" type="Line2D" parent="."]
+width = 14.0
+default_color = Color(0.9, 0.98, 1, 0.34)
+closed = true
+antialiased = true
+
+[node name="Ring" type="Line2D" parent="."]
+width = 5.0
+default_color = Color(0.9, 0.98, 1, 0.9)
+closed = true
+antialiased = true

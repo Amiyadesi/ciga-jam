@@ -14,6 +14,10 @@ const MAP_SIZE: Vector2 = Vector2(5760.0, 3240.0)
 const HOUSE_POSITION: Vector2 = Vector2(520.0, 1640.0)
 const PLAYER_START: Vector2 = Vector2(860.0, 1640.0)
 const SLOW_TIME_SCALE: float = 0.03
+const NAVIGATION_CELL_SIZE: int = 72
+const ROAD_NAV_WEIGHT: float = 0.16
+const ROAD_SHOULDER_NAV_WEIGHT: float = 0.38
+const FOREST_NAV_WEIGHT: float = 4.6
 const PLAYER_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/player.tscn")
 const ENEMY_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/enemy.tscn")
 const OBSTACLE_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/obstacle.tscn")
@@ -46,6 +50,7 @@ const ENTER_TRANSITION = preload("res://reousrces/scene_transitions/stage_enter_
 @onready var placement_preview: Node2D = $World/PlacementPreview
 @onready var preview_visual: Polygon2D = $World/PlacementPreview/PreviewVisual
 @onready var camera: Camera2D = $Camera2D
+@onready var low_health_overlay: ColorRect = $HUD/Root/LowHealthOverlay
 @onready var gold_label: Label = $HUD/Root/TopBar/GoldLabel
 @onready var hp_orb: Control = $HUD/Root/TopBar/HpOrb
 @onready var wave_label: Label = $HUD/Root/WaveLabel
@@ -84,6 +89,8 @@ var _camera_base_position: Vector2 = Vector2.ZERO
 var _run_modifiers: Dictionary = {}
 var _center_notice_tween: Tween
 var _pending_pickups: Array[Dictionary] = []
+var _navigation_grid: AStarGrid2D
+var _navigation_grid_size: Vector2i = Vector2i.ZERO
 
 
 # 构建地图、实体和 HUD，并连接所有局内流程。
@@ -146,26 +153,38 @@ func set_game_state(new_state: GameState) -> void:
 	_state = new_state
 	var total_waves: int = _get_total_waves()
 	var current_wave: int = clampi(_wave_index + 1, 1, total_waves)
+	var game_audio: Node = _get_game_audio()
 	match _state:
 		GameState.PREPARE:
 			Engine.time_scale = 1.0
 			get_tree().paused = false
 			hotbar.call("set_prepare_state", true, current_wave, total_waves)
+			if game_audio != null:
+				game_audio.call("play_prepare_music")
 		GameState.COMBAT:
 			Engine.time_scale = 1.0
 			get_tree().paused = false
 			hotbar.call("set_prepare_state", false, current_wave, total_waves)
+			if game_audio != null:
+				game_audio.call("play_combat_music")
+				game_audio.call("play_spawn_chime")
 		GameState.WAVE_CLEAR:
 			Engine.time_scale = 1.0
 			get_tree().paused = false
 			hotbar.call("set_prepare_state", true, clampi(_wave_index + 1, 1, total_waves), total_waves)
+			if game_audio != null:
+				game_audio.call("play_prepare_music")
 		GameState.VICTORY:
 			Engine.time_scale = 1.0
 			hotbar.call("set_prepare_state", false, total_waves, total_waves)
+			if game_audio != null:
+				game_audio.call("stop_music", 0.35)
 			_save_slot()
 		GameState.FAILURE:
 			Engine.time_scale = 1.0
 			hotbar.call("set_prepare_state", false, current_wave, total_waves)
+			if game_audio != null:
+				game_audio.call("stop_music", 0.2)
 	_refresh_hotbar()
 	_update_hud()
 
@@ -202,6 +221,7 @@ func _setup_world() -> void:
 	_configure_roads()
 	_create_boundaries()
 	_generate_obstacles()
+	_rebuild_navigation_grid()
 	placement_preview.visible = false
 
 
@@ -335,6 +355,10 @@ func _connect_ui() -> void:
 	level_up_button.visible = false
 	recycle_dialog.visible = false
 	skill_summary_panel.visible = false
+	if low_health_overlay != null:
+		low_health_overlay.visible = false
+		if low_health_overlay.material is ShaderMaterial:
+			(low_health_overlay.material as ShaderMaterial).set_shader_parameter("intensity", 0.0)
 	if center_notice_label != null:
 		center_notice_label.visible = false
 		center_notice_label.modulate.a = 0.0
@@ -691,7 +715,8 @@ func _spawn_enemy(entry: Dictionary) -> void:
 		_house,
 		_player,
 		Callable(self, "_get_anchor_nodes"),
-		Callable(self, "_spawn_summoned_pack")
+		Callable(self, "_spawn_summoned_pack"),
+		Callable(self, "_get_enemy_navigation_path")
 	)
 	enemy.connect("died", _on_enemy_died)
 
@@ -961,9 +986,123 @@ func _spawn_summoned_pack(enemy_id: String, level: int, center: Vector2, count: 
 			_house,
 			_player,
 			Callable(self, "_get_anchor_nodes"),
-			Callable(self, "_spawn_summoned_pack")
+			Callable(self, "_spawn_summoned_pack"),
+			Callable(self, "_get_enemy_navigation_path")
 		)
 		enemy.connect("died", _on_enemy_died)
+
+
+# 用障碍碰撞和道路权重重建敌人共用的导航网格。
+func _rebuild_navigation_grid() -> void:
+	_navigation_grid = AStarGrid2D.new()
+	_navigation_grid_size = Vector2i(
+		int(ceil(MAP_SIZE.x / float(NAVIGATION_CELL_SIZE))),
+		int(ceil(MAP_SIZE.y / float(NAVIGATION_CELL_SIZE)))
+	)
+	_navigation_grid.region = Rect2i(Vector2i.ZERO, _navigation_grid_size)
+	_navigation_grid.cell_size = Vector2(NAVIGATION_CELL_SIZE, NAVIGATION_CELL_SIZE)
+	_navigation_grid.offset = Vector2(float(NAVIGATION_CELL_SIZE) * 0.5, float(NAVIGATION_CELL_SIZE) * 0.5)
+	_navigation_grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_AT_LEAST_ONE_WALKABLE
+	_navigation_grid.update()
+	for y in range(_navigation_grid_size.y):
+		for x in range(_navigation_grid_size.x):
+			var cell: Vector2i = Vector2i(x, y)
+			var world_point: Vector2 = _nav_cell_to_world(cell)
+			_navigation_grid.set_point_weight_scale(cell, _get_navigation_weight(world_point))
+	for rect in _obstacle_rects:
+		_mark_nav_rect_solid(rect.grow(10.0))
+
+
+# 给敌人提供一条带避障和道路偏好的导航路径。
+func _get_enemy_navigation_path(start: Vector2, target: Vector2) -> PackedVector2Array:
+	if _navigation_grid == null:
+		return PackedVector2Array([target])
+	var start_cell: Vector2i = _find_nearest_walkable_nav_cell(_world_to_nav_cell(start), 3)
+	var target_cell: Vector2i = _find_nearest_walkable_nav_cell(_world_to_nav_cell(target), 6)
+	if not _is_nav_cell_in_bounds(start_cell) or not _is_nav_cell_in_bounds(target_cell):
+		return PackedVector2Array([target])
+	var id_path: Array = _navigation_grid.get_id_path(start_cell, target_cell)
+	if id_path.is_empty():
+		return PackedVector2Array([target])
+	var path_points: PackedVector2Array = PackedVector2Array()
+	for i in range(id_path.size()):
+		var cell: Vector2i = id_path[i]
+		var world_point: Vector2 = _nav_cell_to_world(cell)
+		if i == id_path.size() - 1:
+			world_point = target
+		path_points.append(world_point)
+	return path_points
+
+
+# 把障碍占地覆盖到导航网格里，防止敌人继续穿树。
+func _mark_nav_rect_solid(rect: Rect2) -> void:
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return
+	var min_cell: Vector2i = _world_to_nav_cell(rect.position)
+	var max_cell: Vector2i = _world_to_nav_cell(rect.position + rect.size)
+	for y in range(min_cell.y, max_cell.y + 1):
+		for x in range(min_cell.x, max_cell.x + 1):
+			var cell: Vector2i = Vector2i(x, y)
+			if _is_nav_cell_in_bounds(cell):
+				_navigation_grid.set_point_solid(cell, true)
+
+
+# 依据道路距离给导航格子设置权重，让怪物更倾向沿路推进。
+func _get_navigation_weight(world_point: Vector2) -> float:
+	var best_distance: float = INF
+	for path in _get_road_paths():
+		best_distance = minf(best_distance, _distance_to_polyline(world_point, path))
+	if best_distance <= 108.0:
+		return ROAD_NAV_WEIGHT
+	if best_distance <= 196.0:
+		return ROAD_SHOULDER_NAV_WEIGHT
+	return FOREST_NAV_WEIGHT
+
+
+# 把世界坐标换算到导航网格编号。
+func _world_to_nav_cell(world_position: Vector2) -> Vector2i:
+	return Vector2i(
+		clampi(int(floor(world_position.x / float(NAVIGATION_CELL_SIZE))), 0, _navigation_grid_size.x - 1),
+		clampi(int(floor(world_position.y / float(NAVIGATION_CELL_SIZE))), 0, _navigation_grid_size.y - 1)
+	)
+
+
+# 把导航格子编号换回世界空间中心点。
+func _nav_cell_to_world(cell: Vector2i) -> Vector2:
+	return Vector2(
+		float(cell.x * NAVIGATION_CELL_SIZE) + float(NAVIGATION_CELL_SIZE) * 0.5,
+		float(cell.y * NAVIGATION_CELL_SIZE) + float(NAVIGATION_CELL_SIZE) * 0.5
+	)
+
+
+# 判断一个导航格子编号是否仍在网格有效范围内。
+func _is_nav_cell_in_bounds(cell: Vector2i) -> bool:
+	return cell.x >= 0 and cell.y >= 0 and cell.x < _navigation_grid_size.x and cell.y < _navigation_grid_size.y
+
+
+# 如果目标格正好落在障碍里，就就近找一个可走格子兜底。
+func _find_nearest_walkable_nav_cell(origin: Vector2i, max_radius: int) -> Vector2i:
+	if not _is_nav_cell_in_bounds(origin):
+		return Vector2i(-1, -1)
+	if not _navigation_grid.is_point_solid(origin):
+		return origin
+	for radius in range(1, max_radius + 1):
+		for y in range(origin.y - radius, origin.y + radius + 1):
+			for x in range(origin.x - radius, origin.x + radius + 1):
+				var cell: Vector2i = Vector2i(x, y)
+				if not _is_nav_cell_in_bounds(cell):
+					continue
+				if _navigation_grid.is_point_solid(cell):
+					continue
+				return cell
+	return Vector2i(-1, -1)
+
+
+# 在运行时查找全局音频路由节点。
+func _get_game_audio() -> Node:
+	if get_tree() == null or get_tree().root == null:
+		return null
+	return get_tree().root.get_node_or_null("GameAudio")
 
 
 # 判断一个矩形是否与已有障碍占地重叠。
@@ -1110,6 +1249,9 @@ func _update_hud() -> void:
 		var max_hp: float = _player.get("max_hp")
 		var hp_ratio: float = current_hp / max_hp if max_hp > 0.0 else 0.0
 		hp_orb.call("set_meter", current_hp, max_hp, hp_ratio, hp_ratio <= 0.35)
+		_update_low_health_overlay(hp_ratio)
+	else:
+		_update_low_health_overlay(1.0)
 	if exp_progress_bar != null and is_instance_valid(_player):
 		var interval: Dictionary = _player.call("get_level_interval_bounds")
 		var min_exp: int = int(interval.get("min_exp", 0))
@@ -1135,6 +1277,18 @@ func _update_hud() -> void:
 	level_up_button.text = "升级 x%d" % int(_player.get("pending_level_ups")) if is_instance_valid(_player) and int(_player.get("pending_level_ups")) > 0 else "升级"
 	level_up_button.visible = _pending_level_up and not level_up_panel.visible
 	_refresh_skill_summary()
+
+
+# 按玩家剩余血量更新屏幕边缘的红色危险光效。
+func _update_low_health_overlay(hp_ratio: float) -> void:
+	if low_health_overlay == null or not (low_health_overlay.material is ShaderMaterial):
+		return
+	var normalized_ratio: float = clampf(hp_ratio, 0.0, 1.0)
+	var t: float = clampf((0.3 - normalized_ratio) / 0.3, 0.0, 1.0)
+	var eased: float = t * t * (3.0 - 2.0 * t)
+	var material: ShaderMaterial = low_health_overlay.material as ShaderMaterial
+	material.set_shader_parameter("intensity", eased * 0.92)
+	low_health_overlay.visible = eased > 0.001
 
 
 # 通过现有 SaveSystem 持久化当前存档槽。

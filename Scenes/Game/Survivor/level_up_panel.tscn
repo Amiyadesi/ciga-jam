@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://2bk0jtcsnhjd"]
 
 [ext_resource type="Script" uid="uid://clk0hrtrxfwrs" path="res://Scenes/Game/Survivor/level_up_panel.gd" id="1_levelup"]
-[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/skill_card_option.tscn" id="2_card"]
+[ext_resource type="PackedScene" uid="uid://c7ifkvsbu7kvf" path="res://Scenes/Game/Survivor/skill_card_option.tscn" id="2_card"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_levelup"]
 content_margin_left = 22.0
@@ -25,6 +25,54 @@ content_margin_top = 16.0
 content_margin_right = 16.0
 content_margin_bottom = 16.0
 bg_color = Color(0, 0, 0, 0.9607843)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.98, 0.82, 0.42, 0.56)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oh01v"]
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+bg_color = Color(0.06, 0.07, 0.09, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.98, 0.82, 0.42, 0.56)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mmcem"]
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+bg_color = Color(0.06, 0.07, 0.09, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.98, 0.82, 0.42, 0.56)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eo20e"]
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+bg_color = Color(0.06, 0.07, 0.09, 0.96)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -89,6 +137,9 @@ theme_override_constants/separation = 14
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/normal = SubResource("StyleBoxFlat_kdhnp")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_oh01v")
+theme_override_styles/hover = SubResource("StyleBoxFlat_mmcem")
+theme_override_styles/focus = SubResource("StyleBoxFlat_eo20e")
 
 [node name="Option2" parent="Panel/Margin/VBox/OptionBox" unique_id=443673697 instance=ExtResource("2_card")]
 layout_mode = 2

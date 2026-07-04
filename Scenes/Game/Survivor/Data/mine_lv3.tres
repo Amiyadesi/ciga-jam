@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="AnchorData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="AnchorData" format=3 uid="uid://jbov8v75h2pc"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
+[ext_resource type="Script" uid="uid://cb7sqmf7ylfh2" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/Behaviors/mine_anchor_behavior.tscn" id="2_behavior"]
 
 [resource]
@@ -16,11 +16,10 @@ attack_type = "范围"
 attack_radius = 260.0
 trigger_radius = 156.0
 full_damage_radius = 56.0
-min_damage_ratio = 0.3
-default_animation = &"idle"
 tint = Color(1, 0.53, 0.22, 1)
 behavior_scene = ExtResource("2_behavior")
 behavior_params = {
 "explosion_color": Color(1, 0.62, 0.28, 1),
+"persistent_range_indicator": true,
 "shake_strength": 1.2
 }

@@ -1,9 +1,13 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://c7ifkvsbu7kvf"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/skill_card_option.gd" id="1_card"]
-[ext_resource type="Script" path="res://Scenes/UIorgan/ButtonEffectModule/button_effect_module.gd" id="2_button_effect"]
+[ext_resource type="Script" uid="uid://cjq1144uwsh87" path="res://Scenes/Game/Survivor/skill_card_option.gd" id="1_card"]
+[ext_resource type="Script" uid="uid://i3xgym8bhl33" path="res://Scenes/UIorgan/ButtonEffectModule/button_effect_module.gd" id="2_button_effect"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
 bg_color = Color(0.06, 0.07, 0.09, 0.96)
 border_width_left = 2
 border_width_top = 2
@@ -14,28 +18,21 @@ corner_radius_top_left = 18
 corner_radius_top_right = 18
 corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
-content_margin_left = 16.0
-content_margin_top = 16.0
-content_margin_right = 16.0
-content_margin_bottom = 16.0
 
-[node name="SkillCardOption" type="Button"]
+[node name="SkillCardOption" type="Button" unique_id=462439751]
 custom_minimum_size = Vector2(280, 360)
-layout_mode = 3
-focus_mode = 2
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_card")
-theme_override_styles/hover = SubResource("StyleBoxFlat_card")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_card")
+theme_override_styles/hover = SubResource("StyleBoxFlat_card")
 theme_override_styles/focus = SubResource("StyleBoxFlat_card")
-text = ""
 flat = true
 script = ExtResource("1_card")
 
-[node name="ButtonEffectModule" type="Node" parent="."]
+[node name="ButtonEffectModule" type="Node" parent="." unique_id=1008766859]
 script = ExtResource("2_button_effect")
 
-[node name="CardMargin" type="MarginContainer" parent="."]
+[node name="CardMargin" type="MarginContainer" parent="." unique_id=901369997]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -48,42 +45,32 @@ theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 18
 
-[node name="CardVBox" type="VBoxContainer" parent="CardMargin"]
+[node name="CardVBox" type="VBoxContainer" parent="CardMargin" unique_id=406415685]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="RarityLabel" type="Label" parent="CardMargin/CardVBox"]
+[node name="RarityLabel" type="Label" parent="CardMargin/CardVBox" unique_id=1224062699]
 layout_mode = 2
-mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.46, 1)
 theme_override_font_sizes/font_size = 18
 text = "普通"
+horizontal_alignment = 1
 
-[node name="TitleLabel" type="Label" parent="CardMargin/CardVBox"]
+[node name="TitleLabel" type="Label" parent="CardMargin/CardVBox" unique_id=2019499471]
 layout_mode = 2
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.98, 0.92, 0.82, 1)
 theme_override_font_sizes/font_size = 28
 text = "技能"
+horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="EffectLabel" type="Label" parent="CardMargin/CardVBox"]
+[node name="EffectLabel" type="Label" parent="CardMargin/CardVBox" unique_id=2116842986]
 custom_minimum_size = Vector2(0, 128)
 layout_mode = 2
 size_flags_vertical = 3
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.94, 0.96, 0.98, 0.96)
 theme_override_font_sizes/font_size = 21
 text = "效果"
-autowrap_mode = 3
-vertical_alignment = 1
-
-[node name="DescriptionLabel" type="Label" parent="CardMargin/CardVBox"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_colors/font_color = Color(0.74, 0.80, 0.88, 0.92)
-theme_override_font_sizes/font_size = 16
-text = "前置：无"
 autowrap_mode = 3

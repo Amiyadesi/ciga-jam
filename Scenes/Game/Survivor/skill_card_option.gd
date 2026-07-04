@@ -4,20 +4,25 @@ extends Button
 
 const SkillDb = preload("res://Scenes/Game/Survivor/skill_database.gd")
 
-@onready var rarity_label: Label = $CardMargin/CardVBox/RarityLabel
-@onready var title_label: Label = $CardMargin/CardVBox/TitleLabel
-@onready var effect_label: Label = $CardMargin/CardVBox/EffectLabel
-@onready var desc_label: Label = $CardMargin/CardVBox/DescriptionLabel
+@onready var rarity_label: Label = get_node_or_null("CardMargin/CardVBox/RarityLabel") as Label
+@onready var title_label: Label = get_node_or_null("CardMargin/CardVBox/TitleLabel") as Label
+@onready var effect_label: Label = get_node_or_null("CardMargin/CardVBox/EffectLabel") as Label
+
 
 
 # 把一条技能数据渲染到卡片 UI 上。
 func set_skill_data(skill: Dictionary) -> void:
 	var rarity: int = int(skill.get("rarity", 1))
+	var prerequisite_text: String = _prerequisite_text(int(skill.get("prerequisite", 0)))
+	var effect_text: String = str(skill.get("display_description", skill.get("description", "")))
 	set_meta("skill_id", int(skill.get("id", 0)))
-	rarity_label.text = _rarity_text(rarity)
-	title_label.text = str(skill.get("name", "技能"))
-	effect_label.text = str(skill.get("display_description", skill.get("description", "")))
-	desc_label.text = "前置：%s" % _prerequisite_text(int(skill.get("prerequisite", 0)))
+	if rarity_label != null:
+		rarity_label.text = _rarity_text(rarity)
+	if title_label != null:
+		title_label.text = str(skill.get("name", "技能"))
+	if effect_label != null:
+		effect_label.text = effect_text
+
 	_apply_rarity_theme(rarity)
 
 
@@ -55,6 +60,9 @@ func _apply_rarity_theme(rarity: int) -> void:
 			accent_color = Color(1.0, 0.54, 0.42, 1.0)
 		_:
 			accent_color = Color(0.88, 0.88, 0.90, 1.0)
-	rarity_label.add_theme_color_override("font_color", accent_color)
-	title_label.add_theme_color_override("font_color", title_color)
-	effect_label.add_theme_color_override("font_color", Color(0.94, 0.96, 0.98, 0.96))
+	if rarity_label != null:
+		rarity_label.add_theme_color_override("font_color", accent_color)
+	if title_label != null:
+		title_label.add_theme_color_override("font_color", title_color)
+	if effect_label != null:
+		effect_label.add_theme_color_override("font_color", Color(0.94, 0.96, 0.98, 0.96))

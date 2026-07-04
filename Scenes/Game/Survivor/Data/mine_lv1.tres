@@ -20,5 +20,6 @@ tint = Color(1, 0.53, 0.22, 1)
 behavior_scene = ExtResource("2_behavior")
 behavior_params = {
 "explosion_color": Color(1, 0.53, 0.22, 1),
+"persistent_range_indicator": true,
 "shake_strength": 1.0
 }

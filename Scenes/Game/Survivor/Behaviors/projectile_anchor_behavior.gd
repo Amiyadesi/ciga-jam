@@ -1,6 +1,6 @@
 class_name ProjectileAnchorBehavior
 extends Node
-## Projectile-based anchor behavior shared by single-shot and multi-shot anchors.
+## 投射物锚点通用行为，供单发和多发锚点共用。
 
 const BULLET_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/magic_bullet.tscn")
 
@@ -12,13 +12,13 @@ var _anchor: Node
 var _fire_timer: float = 0.0
 
 
-# Stores the owning anchor instance after the child scene is instantiated.
+# 在子行为场景实例化后缓存所属锚点。
 func setup(anchor: Node) -> void:
 	_anchor = anchor
 	_fire_timer = 0.0
 
 
-# Fires projectiles at the nearest enemy whenever the anchor cooldown is ready.
+# 只要攻击冷却转好，就朝最近敌人发射一轮投射物。
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(_anchor):
 		return
@@ -33,7 +33,7 @@ func _physics_process(delta: float) -> void:
 	_fire_at(target)
 
 
-# Spawns the configured number of projectiles from the owner anchor.
+# 按当前配置生成一轮投射物，并补一次施法音效。
 func _fire_at(target: Node2D) -> void:
 	var parent: Node = _resolve_projectile_parent()
 	if parent == null:
@@ -46,9 +46,12 @@ func _fire_at(target: Node2D) -> void:
 		var offset: Vector2 = Vector2(0.0, centered_index * spread_offset)
 		var direction: Vector2 = _anchor.global_position.direction_to(target.global_position + offset)
 		bullet.call("setup", _anchor.global_position + offset, direction, damage, projectile_color, _anchor)
+	var game_audio: Node = _anchor.get_tree().root.get_node_or_null("GameAudio") if _anchor != null and _anchor.get_tree() != null else null
+	if game_audio != null:
+		game_audio.call("play_fireball")
 
 
-# Prefers the shared projectile container so spawned bullets do not pollute the anchor list.
+# 优先把子弹挂到统一的投射物容器，避免污染锚点节点列表。
 func _resolve_projectile_parent() -> Node:
 	if _anchor == null or _anchor.get_tree() == null:
 		return null

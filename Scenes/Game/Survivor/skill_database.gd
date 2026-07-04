@@ -26,6 +26,8 @@ const SKILL_RESOURCES: Array[Resource] = [
 
 static var _skills: Array[Dictionary] = []
 static var _skills_by_id: Dictionary = {}
+static var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+static var _rng_ready: bool = false
 
 
 # 加载并缓存所有技能资源行。
@@ -65,9 +67,34 @@ static func get_skill_name(skill_id: int) -> String:
 
 # 返回当前最多 count 张可选卡牌。
 static func get_available_options(player_state: Dictionary, count: int = 3) -> Array[Dictionary]:
+	_ensure_rng_ready()
 	var selected: Array = player_state.get("selected_skill_ids", []) as Array
-	var selected_groups: Dictionary = {}
+	var selected_ids: Array[int] = []
 	for selected_id in selected:
+		selected_ids.append(int(selected_id))
+	var available: Array[Dictionary] = _get_drawable_skills(selected_ids)
+	if available.is_empty():
+		return []
+	var options: Array[Dictionary] = []
+	if available.size() >= count:
+		var pool: Array[Dictionary] = []
+		for item in available:
+			pool.append((item as Dictionary).duplicate(true))
+		while options.size() < count and not pool.is_empty():
+			var pick_index: int = _rng.randi_range(0, pool.size() - 1)
+			options.append((pool[pick_index] as Dictionary).duplicate(true))
+			pool.remove_at(pick_index)
+	else:
+		while options.size() < count:
+			var repeat_index: int = _rng.randi_range(0, available.size() - 1)
+			options.append((available[repeat_index] as Dictionary).duplicate(true))
+	return options
+
+
+# 只返回当前已经满足前置条件的可抽技能列表。
+static func _get_drawable_skills(selected_ids: Array[int]) -> Array[Dictionary]:
+	var selected_groups: Dictionary = {}
+	for selected_id in selected_ids:
 		var selected_skill: Dictionary = get_skill(int(selected_id))
 		if selected_skill.is_empty():
 			continue
@@ -75,21 +102,24 @@ static func get_available_options(player_state: Dictionary, count: int = 3) -> A
 	var available: Array[Dictionary] = []
 	for skill in load_skills():
 		var skill_id: int = int(skill.get("id", 0))
-		if selected.has(skill_id):
+		if selected_ids.has(skill_id):
 			continue
 		var group_id: int = int(skill.get("group_id", 0))
 		var prerequisite: int = int(skill.get("prerequisite", 0))
 		if prerequisite <= 0 and selected_groups.has(group_id):
 			continue
-		if prerequisite > 0 and not selected.has(prerequisite):
+		if prerequisite > 0 and not selected_ids.has(prerequisite):
 			continue
-		available.append(skill.duplicate(true))
-	available.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		if int(a.get("rarity", 0)) == int(b.get("rarity", 0)):
-			return int(a.get("id", 0)) < int(b.get("id", 0))
-		return int(a.get("rarity", 0)) < int(b.get("rarity", 0))
-	)
-	return available.slice(0, mini(count, available.size()))
+		available.append((skill as Dictionary).duplicate(true))
+	return available
+
+
+# 初始化技能抽卡用的随机数发生器。
+static func _ensure_rng_ready() -> void:
+	if _rng_ready:
+		return
+	_rng.randomize()
+	_rng_ready = true
 
 
 # 把已选择技能转换成整局运行时修正。

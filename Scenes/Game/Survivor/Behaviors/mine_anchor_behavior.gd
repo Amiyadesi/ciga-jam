@@ -11,13 +11,16 @@ var _anchor: Node
 var _cooldown_timer: float = 0.0
 
 
-# Stores the owning anchor instance after instantiation.
+# 记录所属锚点，并读取资源里配置的爆炸颜色和震屏强度。
 func setup(anchor: Node) -> void:
 	_anchor = anchor
+	var params: Dictionary = anchor.get("behavior_params") as Dictionary
+	explosion_color = params.get("explosion_color", explosion_color) as Color
+	shake_strength = float(params.get("shake_strength", shake_strength))
 	_cooldown_timer = 0.0
 
 
-# Triggers one AoE explosion when enemies enter the mine trigger radius.
+# 触发半径内进入敌人后，按冷却节奏执行一次爆炸。
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(_anchor):
 		return
@@ -31,7 +34,7 @@ func _physics_process(delta: float) -> void:
 	_cooldown_timer = maxf(0.01, float(_anchor.get("attack_cooldown")))
 
 
-# Applies eased AoE damage, visual feedback, and optional screen shake.
+# 对范围内敌人施加中心到边缘递减的爆炸伤害。
 func _explode() -> void:
 	var radius: float = float(_anchor.get("attack_radius"))
 	var full_damage_radius: float = float(_anchor.get("full_damage_radius"))
@@ -50,7 +53,7 @@ func _explode() -> void:
 	_spawn_feedback(radius)
 
 
-# Calculates the explosion falloff from center to edge.
+# 计算中心满伤到边缘保底伤害之间的 eased 插值。
 func _compute_damage_ratio(distance: float, radius: float, full_damage_radius: float, min_damage_ratio: float) -> float:
 	if distance <= full_damage_radius:
 		return 1.0
@@ -61,7 +64,7 @@ func _compute_damage_ratio(distance: float, radius: float, full_damage_radius: f
 	return lerpf(1.0, min_damage_ratio, eased)
 
 
-# Spawns particles and asks the scene root to shake the camera.
+# 生成爆炸范围与烟雾粒子，并请求场景执行一次震屏。
 func _spawn_feedback(radius: float) -> void:
 	var scene_root: Node = get_tree().current_scene
 	if scene_root == null:
@@ -69,6 +72,6 @@ func _spawn_feedback(radius: float) -> void:
 	var vfx: Node2D = EXPLOSION_VFX_SCENE.instantiate() as Node2D
 	scene_root.add_child(vfx)
 	vfx.global_position = _anchor.global_position
-	vfx.call("setup", radius, explosion_color)
+	vfx.call("setup", radius, float(_anchor.get("full_damage_radius")), explosion_color)
 	if scene_root.has_method("apply_screen_shake"):
 		scene_root.call("apply_screen_shake", shake_strength, 0.18)

@@ -38,6 +38,10 @@ const FLOATING_TEXT_SCENE: PackedScene = preload("res://Scenes/UIorgan/floating_
 @export var player_dash_min_speed: float = 260.0
 ## 冲刺攻击的最大速度。
 @export var player_dash_max_speed: float = 620.0
+## 重新寻路的最短刷新间隔。
+@export var path_refresh_interval: float = 0.18
+## 认为已经走到当前路径点的距离阈值。
+@export var path_point_reach_distance: float = 18.0
 
 @onready var visual: Polygon2D = $Visual
 @onready var attack_area: Area2D = $AttackArea
@@ -56,6 +60,7 @@ var _hit_stop_timer: float = 0.0
 var _house: Node2D
 var _player: Node2D
 var _anchor_provider: Callable
+var _path_provider: Callable
 var _is_alive: bool = true
 var _enemy_id: String = "slime_blue"
 var _level: int = 1
@@ -73,6 +78,11 @@ var _attack_dash_destination: Vector2 = Vector2.ZERO
 var _pending_player_hit: bool = false
 var _attack_visual_tween: Tween
 var _death_tween: Tween
+var _nav_refresh_timer: float = 0.0
+var _navigation_points: PackedVector2Array = PackedVector2Array()
+var _navigation_index: int = 0
+var _last_nav_target_position: Vector2 = Vector2(999999.0, 999999.0)
+var _last_nav_target_id: int = 0
 
 
 ## 初始化敌人自身状态与碰撞监听。
@@ -85,11 +95,12 @@ func _ready() -> void:
 
 
 ## 根据 EnemyData 或兼容字典写入运行时参数。
-func setup(enemy_spec: Variant, enemy_level: int, house: Node2D, player: Node2D, anchors_provider: Callable = Callable(), summon_callback: Callable = Callable()) -> void:
+func setup(enemy_spec: Variant, enemy_level: int, house: Node2D, player: Node2D, anchors_provider: Callable = Callable(), summon_callback: Callable = Callable(), path_provider: Callable = Callable()) -> void:
 	_house = house
 	_player = player
 	_anchor_provider = anchors_provider
 	_summon_callback = summon_callback
+	_path_provider = path_provider
 	_level = maxi(1, enemy_level)
 	var runtime: Dictionary = {}
 	if enemy_spec is Dictionary:
@@ -100,6 +111,7 @@ func setup(enemy_spec: Variant, enemy_level: int, house: Node2D, player: Node2D,
 		runtime = _build_legacy_stats(str(enemy_spec), _level)
 	_apply_runtime_stats(runtime)
 	_hp = max_hp
+	_reset_navigation_state()
 
 
 ## 每个物理帧处理索敌、追击、攻击与召唤。
@@ -133,7 +145,7 @@ func _physics_process(delta: float) -> void:
 			velocity = Vector2.ZERO
 		else:
 			_boss_state = BossState.CHASE
-			var direction: Vector2 = global_position.direction_to(target.global_position)
+			var direction: Vector2 = _get_navigation_direction(target, delta)
 			velocity = direction * speed * _slow_multiplier
 			_update_facing(direction)
 	else:
@@ -257,6 +269,62 @@ func _finish_player_dash() -> void:
 	velocity = Vector2.ZERO
 
 
+## 按当前目标刷新一次寻路，并给出本帧应前进的方向。
+func _get_navigation_direction(target: Node2D, delta: float) -> Vector2:
+	if not is_instance_valid(target):
+		return Vector2.ZERO
+	var target_position: Vector2 = target.global_position
+	if _path_provider.is_valid():
+		_nav_refresh_timer = maxf(0.0, _nav_refresh_timer - delta)
+		var target_changed: bool = _last_nav_target_id != target.get_instance_id()
+		var moved_far_enough: bool = _last_nav_target_id == 0 or _last_nav_target_position.distance_to(target_position) >= 64.0
+		if _nav_refresh_timer <= 0.0 or target_changed or moved_far_enough or _navigation_points.is_empty():
+			_request_navigation_path(target)
+		var path_direction: Vector2 = _follow_navigation_points(target_position)
+		if path_direction != Vector2.ZERO:
+			return path_direction
+	return global_position.direction_to(target_position)
+
+
+## 向主场景请求一条避障且更偏向道路的导航路径。
+func _request_navigation_path(target: Node2D) -> void:
+	if not _path_provider.is_valid() or not is_instance_valid(target):
+		return
+	var path_result: Variant = _path_provider.call(global_position, target.global_position)
+	if path_result is PackedVector2Array:
+		_navigation_points = path_result
+	else:
+		_navigation_points = PackedVector2Array()
+	_navigation_index = 0
+	_nav_refresh_timer = path_refresh_interval
+	_last_nav_target_id = target.get_instance_id()
+	_last_nav_target_position = target.global_position
+
+
+## 沿着当前路径点逐个前进，并在接近后自动切换到下一个点。
+func _follow_navigation_points(target_position: Vector2) -> Vector2:
+	if _navigation_points.is_empty():
+		return Vector2.ZERO
+	while _navigation_index < _navigation_points.size():
+		var next_point: Vector2 = _navigation_points[_navigation_index]
+		if global_position.distance_to(next_point) > path_point_reach_distance:
+			break
+		_navigation_index += 1
+	if _navigation_index >= _navigation_points.size():
+		return global_position.direction_to(target_position)
+	var target_point: Vector2 = _navigation_points[_navigation_index]
+	return global_position.direction_to(target_point)
+
+
+## 清空上一次目标留下的路径缓存，避免换目标时继续走旧路。
+func _reset_navigation_state() -> void:
+	_nav_refresh_timer = 0.0
+	_navigation_points = PackedVector2Array()
+	_navigation_index = 0
+	_last_nav_target_position = Vector2(999999.0, 999999.0)
+	_last_nav_target_id = 0
+
+
 ## 玩家进入攻击判定区时结算冲刺伤害。
 func _on_attack_area_body_entered(body: Node) -> void:
 	if not _pending_player_hit or not _is_alive:
@@ -298,6 +366,10 @@ func _update_facing(direction: Vector2) -> void:
 
 ## 简单播放一次攻击动作，没有成品动画时用缩放代替。
 func _play_attack_feedback() -> void:
+	if _enemy_id.begins_with("slime"):
+		var game_audio: Node = get_tree().root.get_node_or_null("GameAudio")
+		if game_audio != null:
+			game_audio.call("play_slime_attack")
 	if animation_player != null and animation_player.has_animation(&"attack"):
 		animation_player.play(&"attack")
 		return
@@ -338,6 +410,7 @@ func _die() -> void:
 		return
 	_is_alive = false
 	_finish_player_dash()
+	_reset_navigation_state()
 	remove_from_group("enemies")
 	died.emit(self, gold_reward, exp_reward)
 	if animation_player != null and animation_player.has_animation(&"death"):

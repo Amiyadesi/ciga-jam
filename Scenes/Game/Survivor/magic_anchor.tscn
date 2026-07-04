@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://Scenes/Game/Survivor/magic_anchor.gd" id="1_anchor"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/VFX/attack_range_indicator.tscn" id="2_range_indicator"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_anchor"]
 radius = 30.0
@@ -26,6 +27,9 @@ script = ExtResource("1_anchor")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_anchor")
 
+[node name="AttackRangeIndicator" parent="." instance=ExtResource("2_range_indicator")]
+visible = false
+
 [node name="VisualRoot" type="Node2D" parent="."]
 
 [node name="Visual" type="Polygon2D" parent="VisualRoot"]
@@ -45,7 +49,7 @@ centered = true
 [node name="RangeArea" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 2
-monitoring = false
+monitoring = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RangeArea"]
 shape = SubResource("CircleShape2D_range")

@@ -1,10 +1,14 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://Scenes/Game/Survivor/player.gd" id="1_player"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/VFX/attack_range_indicator.tscn" id="2_range_indicator"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_player"]
 radius = 26.0
 height = 72.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_attack_range"]
+radius = 230.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sprint_bg"]
 bg_color = Color(0.03, 0.05, 0.07, 0.88)
@@ -32,6 +36,19 @@ script = ExtResource("1_player")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_player")
+
+[node name="AttackRangeArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+monitoring = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackRangeArea"]
+shape = SubResource("CircleShape2D_attack_range")
+
+[node name="AttackRangeIndicator" parent="." instance=ExtResource("2_range_indicator")]
+visible = false
+ring_color = Color(0.94, 0.58, 1, 0.92)
+fill_color = Color(0.82, 0.34, 1, 0.12)
 
 [node name="Visuals" type="Node2D" parent="."]
 scale = Vector2(1.18, 1.18)

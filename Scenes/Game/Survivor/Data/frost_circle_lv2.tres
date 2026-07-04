@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="AnchorData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="AnchorData" format=3 uid="uid://qy5s5daualtp"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
+[ext_resource type="Script" uid="uid://cb7sqmf7ylfh2" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/Behaviors/slow_aura_anchor_behavior.tscn" id="2_behavior"]
 
 [resource]
@@ -16,12 +16,11 @@ attack_type = "减速"
 attack_radius = 270.0
 trigger_radius = 270.0
 full_damage_radius = 36.0
-min_damage_ratio = 0.3
-default_animation = &"idle"
 tint = Color(0.48, 0.86, 1, 1)
 behavior_scene = ExtResource("2_behavior")
 behavior_params = {
-"slow_percent": 0.7,
+"persistent_range_indicator": true,
 "slow_duration": 0.35,
+"slow_percent": 0.7,
 "tick_interval": 0.2
 }

@@ -11,16 +11,20 @@ signal menu_pressed
 @onready var menu_button: ShaderButton = %MenuButton
 
 
-# Wires result buttons after SceneManagerBackdrop captures the modal root.
+# 连接失败界面按钮并补局内确认音。
 func _ready() -> void:
 	super._ready()
 	if Engine.is_editor_hint():
 		return
+	var game_audio: Node = get_tree().root.get_node_or_null("GameAudio")
+	if game_audio != null:
+		game_audio.call("setup_ingame_shader_button", retry_button)
+		game_audio.call("setup_ingame_shader_button", menu_button)
 	retry_button.pressed.connect(retry_pressed.emit)
 	menu_button.pressed.connect(menu_pressed.emit)
 
 
-# Updates run stats before the modal opens.
+# 打开失败界面前刷新本局结算摘要。
 func set_summary(kills: int, gold: int) -> void:
 	if summary_label == null:
 		return

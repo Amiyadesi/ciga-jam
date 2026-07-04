@@ -13,6 +13,8 @@ class_name ButtonEffectModule
 @export var scale_amount:Vector2 = Vector2.ONE * 1.1
 ## 悬停或点击时的随机旋转幅度。
 @export var rotation_amount:float = 3.
+## 普通按钮按下时要播放的界面音类型。
+@export_enum("none", "confirm", "cancel") var press_sound_kind: String = "confirm"
 
 @onready var button:Button = get_parent()
 
@@ -34,6 +36,7 @@ func _on_enable() -> void:
 	button.pivot_offset_ratio = Vector2.ONE / 2
 
 func _on_button_pressed() -> void:
+	_play_press_sound()
 	_reset_tween()
 	tween.tween_property(button, "scale", 
 		scale_amount, anim_duration).from(Vector2.ONE * .8)
@@ -52,4 +55,29 @@ func _on_mouse_hovered(hovered:bool) -> void:
 		scale_amount if hovered else Vector2.ONE, anim_duration)
 	tween.tween_property(button,"rotation_degrees",
 		rotation_amount * [-1,1].pick_random() if hovered else 0., anim_duration)
+
+
+# 给普通 Button 统一补一个界面确认/取消音，避免和 ShaderButton 自带音频重复。
+func _play_press_sound() -> void:
+	if press_sound_kind == "none":
+		return
+	if button.get_node_or_null("PressAudio") != null:
+		return
+	var game_audio: Node = _get_game_audio()
+	if game_audio == null:
+		return
+	match press_sound_kind:
+		"confirm":
+			game_audio.call("play_ui_confirm_ingame")
+		"cancel":
+			game_audio.call("play_ui_cancel")
+		_:
+			pass
+
+
+# 在运行时查找全局音频路由节点。
+func _get_game_audio() -> Node:
+	if get_tree() == null or get_tree().root == null:
+		return null
+	return get_tree().root.get_node_or_null("GameAudio")
 	

@@ -23,7 +23,7 @@ public partial class Menu : Control
     private Node _growthScreen;
     private CanvasItem _bootFlash;
 
-    // Wires menu buttons and child modal callbacks when the scene opens.
+    // 进入主菜单时连接按钮、配置音频并播放开场表现。
     public override void _Ready()
     {
         _bootFlash = GetNodeOrNull<CanvasItem>("ButtonLayer/MonitorOverlay/BootFlash");
@@ -37,6 +37,7 @@ public partial class Menu : Control
 
         Visible = true;
         Modulate = Colors.White;
+        ConfigureMenuAudio();
         _settingScreen.Set("is_in_menu_flag", true);
         ConnectIfNeeded(_startButton, "pressed", Callable.From(_on_start_pressed));
         ConnectIfNeeded(_settingButton, "pressed", Callable.From(() => _settingScreen.Call("open_modal")));
@@ -49,7 +50,7 @@ public partial class Menu : Control
         PlayBootFlash();
     }
 
-    // Initializes the default save slot, fades the menu, and enters combat.
+    // 初始化默认存档槽，然后切入生存模式场景。
     private async void _on_start_pressed()
     {
         EmitSignal(SignalName.start_requested);
@@ -57,7 +58,7 @@ public partial class Menu : Control
         await ChangeToSurvivorScene();
     }
 
-    // Opens the growth modal after ensuring slot data exists.
+    // 确保存档槽存在后再打开成长页。
     private void _on_growth_pressed()
     {
         PrepareSaveSlot();
@@ -65,7 +66,7 @@ public partial class Menu : Control
         _growthScreen?.Call("open_modal");
     }
 
-    // Shows the short boot flash animation over the menu.
+    // 播放一段短暂的开机闪屏。
     private async void PlayBootFlash()
     {
         if (_bootFlash == null)
@@ -83,21 +84,21 @@ public partial class Menu : Control
         _bootFlash.Visible = false;
     }
 
-    // Returns from the credits modal to the settings modal.
+    // 从致谢页返回设置页。
     private async void _on_thank_return_requested()
     {
         _thankScreen?.Call("close_modal");
         _settingScreen?.Call("open_modal");
     }
 
-    // Opens the credits modal from settings.
+    // 从设置页切到致谢页。
     private async void _on_setting_thanks_requested()
     {
         _settingScreen?.Call("close_modal");
         _thankScreen?.Call("open_modal");
     }
 
-    // Loads an existing slot or prepares a new one without overwriting progress.
+    // 读取已有存档，或在首次进入时创建默认槽位。
     private void PrepareSaveSlot()
     {
         var saveSystem = GetNodeOrNull<Node>("/root/SaveSystem");
@@ -127,7 +128,7 @@ public partial class Menu : Control
         }
     }
 
-    // Changes to the survivor prototype using SceneManager transitions when available.
+    // 通过 SceneManager 过渡切进生存模式场景。
     private async Task ChangeToSurvivorScene()
     {
         var sceneManager = GetNodeOrNull<Node>("/root/SceneManager");
@@ -146,7 +147,7 @@ public partial class Menu : Control
         GetTree().ChangeSceneToFile(SurvivorScenePath);
     }
 
-    // Plays the reverse transition when the menu scene becomes active.
+    // 菜单重新成为当前场景时补一段入场淡入。
     private void PlayEnterTransition()
     {
         var sceneManager = GetNodeOrNull<Node>("/root/SceneManager");
@@ -159,7 +160,23 @@ public partial class Menu : Control
         sceneManager.Call("transition_start", transition, true);
     }
 
-    // Connects a signal once to avoid duplicate callbacks after scene reloads.
+    // 给主菜单按钮配置菜单确认音，并开始循环菜单 BGM。
+    private void ConfigureMenuAudio()
+    {
+        var gameAudio = GetNodeOrNull<Node>("/root/GameAudio");
+        if (gameAudio == null)
+        {
+            return;
+        }
+
+        gameAudio.Call("setup_menu_shader_button", _startButton);
+        gameAudio.Call("setup_menu_shader_button", _settingButton);
+        gameAudio.Call("setup_menu_shader_button", _growthButton);
+        gameAudio.Call("setup_menu_shader_button", _exitButton);
+        gameAudio.Call("play_menu_music");
+    }
+
+    // 只连接一次信号，避免场景重进后重复回调。
     private static void ConnectIfNeeded(Node node, StringName signal, Callable callable)
     {
         if (node != null && !node.IsConnected(signal, callable))

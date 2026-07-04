@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://eaa2damffngl"
+path="res://.godot/imported/Magical Forest.wav-3bfff43bbe10cd9c38595428a8f3151a.sample"
+
+[deps]
+
+source_file="res://assets/music/combat/Magical Forest.wav"
+dest_files=["res://.godot/imported/Magical Forest.wav-3bfff43bbe10cd9c38595428a8f3151a.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

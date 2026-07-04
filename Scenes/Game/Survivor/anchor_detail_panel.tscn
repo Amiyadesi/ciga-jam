@@ -62,6 +62,7 @@ text = "X"
 
 [node name="ButtonEffectModule" type="Node" parent="Panel/Margin/VBox/Header/CloseButton"]
 script = ExtResource("2_button_effect")
+press_sound_kind = "cancel"
 
 [node name="BodyLabel" type="Label" parent="Panel/Margin/VBox"]
 layout_mode = 2

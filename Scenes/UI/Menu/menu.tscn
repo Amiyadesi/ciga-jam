@@ -68,7 +68,7 @@ offset_right = 244.0
 offset_bottom = 217.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 122
-text = "CIGA"
+text = "魔女之森"
 horizontal_alignment = 1
 
 [node name="Label2" type="Label" parent="ButtonLayer" unique_id=1466311174]

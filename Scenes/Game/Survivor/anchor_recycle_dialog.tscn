@@ -73,6 +73,7 @@ text = "取消"
 
 [node name="ButtonEffectModule" type="Node" parent="Panel/Margin/VBox/ButtonRow/CancelButton"]
 script = ExtResource("2_button_effect")
+press_sound_kind = "cancel"
 
 [node name="ConfirmButton" type="Button" parent="Panel/Margin/VBox/ButtonRow"]
 custom_minimum_size = Vector2(0, 50)
