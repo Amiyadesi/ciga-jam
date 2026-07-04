@@ -1,0 +1,111 @@
+[gd_scene format=3 uid="uid://bfo4brn0sxrti"]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/hotbar.gd" id="1_hotbar"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hotbar"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.015, 0.018, 0.025, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.82, 0.63, 1, 0.42)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="Hotbar" type="Control" unique_id=1791251213]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_hotbar")
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=899513177]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 300.0
+offset_top = -188.0
+offset_right = -300.0
+offset_bottom = -36.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hotbar")
+
+[node name="Margin" type="MarginContainer" parent="Panel" unique_id=1059478039]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin" unique_id=1303384054]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Row" type="HBoxContainer" parent="Panel/Margin/VBox" unique_id=1956595786]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Slots" type="HBoxContainer" parent="Panel/Margin/VBox/Row" unique_id=2142390491]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Slot1" type="Button" parent="Panel/Margin/VBox/Row/Slots" unique_id=1498620854]
+custom_minimum_size = Vector2(86, 78)
+layout_mode = 2
+text = "-"
+
+[node name="Slot2" type="Button" parent="Panel/Margin/VBox/Row/Slots" unique_id=2120996738]
+custom_minimum_size = Vector2(86, 78)
+layout_mode = 2
+text = "-"
+
+[node name="Slot3" type="Button" parent="Panel/Margin/VBox/Row/Slots" unique_id=203429456]
+custom_minimum_size = Vector2(86, 78)
+layout_mode = 2
+text = "-"
+
+[node name="Slot4" type="Button" parent="Panel/Margin/VBox/Row/Slots" unique_id=1214888776]
+custom_minimum_size = Vector2(86, 78)
+layout_mode = 2
+text = "-"
+
+[node name="Slot5" type="Button" parent="Panel/Margin/VBox/Row/Slots" unique_id=2071339107]
+custom_minimum_size = Vector2(86, 78)
+layout_mode = 2
+text = "-"
+
+[node name="Slot6" type="Button" parent="Panel/Margin/VBox/Row/Slots" unique_id=1948684729]
+custom_minimum_size = Vector2(86, 78)
+layout_mode = 2
+text = "-"
+
+[node name="Slot7" type="Button" parent="Panel/Margin/VBox/Row/Slots" unique_id=1058273921]
+custom_minimum_size = Vector2(86, 78)
+layout_mode = 2
+text = "-"
+
+[node name="StartWaveButton" type="Button" parent="Panel/Margin/VBox/Row" unique_id=1694078697]
+custom_minimum_size = Vector2(176, 78)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "开始战斗"
+
+[node name="HintLabel" type="Label" parent="Panel/Margin/VBox" unique_id=1808289924]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.86, 0.9, 0.9)
+theme_override_font_sizes/font_size = 18
+text = "准备中"
+horizontal_alignment = 1

@@ -1,0 +1,157 @@
+[gd_scene load_steps=9 format=3 uid="uid://bbq46x1emgrc3"]
+
+[ext_resource type="Script" uid="uid://dw35wdmcgr3qy" path="res://Scenes/UI/Menu/thank_screen.gd" id="1_thanks"]
+[ext_resource type="Shader" uid="uid://dtcjm8c7boghc" path="res://reousrces/shader/blur.gdshader" id="2_blur"]
+[ext_resource type="PackedScene" uid="uid://c8eisrp4kcf52" path="res://Scenes/UI/Menu/setting_ambient_vfx.tscn" id="3_ambient"]
+[ext_resource type="PackedScene" uid="uid://uacp5p6j6svs" path="res://Scenes/UI/Menu/setting_local_light_vfx.tscn" id="4_light"]
+[ext_resource type="PackedScene" uid="uid://dssid7iw4aqb6" path="res://Scenes/UIorgan/ShaderButton/shader_button.tscn" id="5_button"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_thanks_blur"]
+shader = ExtResource("2_blur")
+shader_parameter/strength = 3.3
+shader_parameter/mix_percentage = 0.3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_thanks_frame"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.98, 0.72, 0.36, 0.26)
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_thanks_sep"]
+color = Color(0.98, 0.72, 0.36, 0.42)
+thickness = 1
+grow_begin = 30.0
+grow_end = 30.0
+
+[node name="ThankScreen" type="Container" unique_id=1166487123]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_thanks")
+color = Color(0, 0, 0, 0.68)
+close_modal_on_clicked = false
+modal_offset_unit = 2
+modal_offset = Vector2(0, 0.08)
+metadata/_custom_type_script = "uid://c5r3km1v05kuj"
+
+[node name="PanelRoot" type="Control" parent="."]
+layout_mode = 2
+
+[node name="GlassBlur" type="ColorRect" parent="PanelRoot"]
+material = SubResource("ShaderMaterial_thanks_blur")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.01, 0.008, 0.008, 0.54)
+
+[node name="GlassFrame" type="Panel" parent="PanelRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_thanks_frame")
+
+[node name="SettingAmbientVFX" parent="PanelRoot" instance=ExtResource("3_ambient")]
+layout_mode = 1
+
+[node name="SettingLocalLightVFX" parent="PanelRoot" instance=ExtResource("4_light")]
+layout_mode = 1
+
+[node name="OuterMargin" type="MarginContainer" parent="PanelRoot"]
+layout_mode = 1
+offset_right = 1915.0
+offset_bottom = 1084.0
+theme_override_constants/margin_left = 188
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 188
+
+[node name="ShellPanel" type="Control" parent="PanelRoot/OuterMargin"]
+custom_minimum_size = Vector2(760, 520)
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ShellMargin" type="MarginContainer" parent="PanelRoot/OuterMargin/ShellPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 34
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="MainVBox" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.42, 1)
+theme_override_font_sizes/font_size = 46
+text = "感谢"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_thanks_sep")
+
+[node name="Body" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+custom_minimum_size = Vector2(0, 360)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="Subtitle" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.9, 0.84, 0.92)
+theme_override_font_sizes/font_size = 22
+text = "感谢你打开这扇界限窗口。"
+horizontal_alignment = 1
+
+[node name="CreditsText" type="RichTextLabel" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.86, 0.84, 0.78, 0.96)
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[b]程序[/b]
+Amiya_desi
+
+[b]策划[/b]
+Amiya_desi
+
+[b]Boundary Window[/b]
+一个关于观察范围、窗口边界和不稳定世界的小型实验。"
+fit_content = true
+scroll_active = false
+
+[node name="Footer" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+layout_mode = 2
+
+[node name="ReturnButton" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Footer" instance=ExtResource("5_button")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "返回"

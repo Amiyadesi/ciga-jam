@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/energy_beam.gd" id="1_beam"]
+
+[node name="EnergyBeam" type="Node2D"]
+z_index = 4
+script = ExtResource("1_beam")
+
+[node name="Line2D" type="Line2D" parent="."]
+width = 16.0
+default_color = Color(0.25, 0.86, 1, 0.62)
+antialiased = true
+begin_cap_mode = 2
+end_cap_mode = 2

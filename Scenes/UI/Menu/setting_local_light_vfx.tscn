@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://uacp5p6j6svs"]
+
+[ext_resource type="Script" uid="uid://g3iaoot8ojgf" path="res://Scenes/UI/Menu/setting_local_light_vfx.gd" id="1_script"]
+
+[sub_resource type="Gradient" id="Gradient_light"]
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_light"]
+gradient = SubResource("Gradient_light")
+width = 192
+height = 192
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[node name="SettingLocalLightVFX" type="Control" unique_id=371803428]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="KeyLight" type="PointLight2D" parent="." unique_id=1372371553]
+position = Vector2(380, 188)
+texture = SubResource("GradientTexture2D_light")
+texture_scale = 3.55
+
+[node name="AccentLight" type="PointLight2D" parent="." unique_id=1589736216]
+position = Vector2(930, 304)
+texture = SubResource("GradientTexture2D_light")
+texture_scale = 2.35

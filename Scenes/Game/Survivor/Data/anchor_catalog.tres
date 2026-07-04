@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AnchorCatalog" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/anchor_catalog.gd" id="1_catalog"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/xiu_xiu_lv1.tres" id="2_x1"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/xiu_xiu_lv2.tres" id="3_x2"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/xiu_xiu_lv3.tres" id="4_x3"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/double_xiu_xiu_lv1.tres" id="5_d1"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/double_xiu_xiu_lv2.tres" id="6_d2"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/double_xiu_xiu_lv3.tres" id="7_d3"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/mine_lv1.tres" id="8_m1"]
+
+[resource]
+script = ExtResource("1_catalog")
+entries = {
+"double_xiu_xiu": {
+"display_name": "双发咻咻",
+"levels": [ExtResource("5_d1"), ExtResource("6_d2"), ExtResource("7_d3")],
+"short_name": "双发"
+},
+"mine": {
+"display_name": "地雷",
+"levels": [ExtResource("8_m1")],
+"short_name": "地雷"
+},
+"xiu_xiu": {
+"display_name": "咻咻",
+"levels": [ExtResource("2_x1"), ExtResource("3_x2"), ExtResource("4_x3")],
+"short_name": "咻咻"
+}
+}
+hotbar_order = PackedStringArray("xiu_xiu", "double_xiu_xiu", "mine")

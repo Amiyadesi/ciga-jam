@@ -1,0 +1,155 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/failure_screen.gd" id="1_failure"]
+[ext_resource type="Shader" uid="uid://dtcjm8c7boghc" path="res://reousrces/shader/blur.gdshader" id="2_blur"]
+[ext_resource type="PackedScene" uid="uid://c8eisrp4kcf52" path="res://Scenes/UI/Menu/setting_ambient_vfx.tscn" id="3_ambient"]
+[ext_resource type="PackedScene" uid="uid://uacp5p6j6svs" path="res://Scenes/UI/Menu/setting_local_light_vfx.tscn" id="4_light"]
+[ext_resource type="PackedScene" uid="uid://dssid7iw4aqb6" path="res://Scenes/UIorgan/ShaderButton/shader_button.tscn" id="5_button"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_failure_blur"]
+shader = ExtResource("2_blur")
+shader_parameter/strength = 3.3
+shader_parameter/mix_percentage = 0.3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_failure_frame"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.98, 0.72, 0.36, 0.26)
+
+[node name="FailureScreen" type="Container"]
+process_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_failure")
+color = Color(0, 0, 0, 0.68)
+close_modal_on_clicked = false
+modal_offset_unit = 2
+modal_offset = Vector2(0, 0.08)
+
+[node name="PanelRoot" type="Control" parent="."]
+layout_mode = 2
+
+[node name="GlassBlur" type="ColorRect" parent="PanelRoot"]
+material = SubResource("ShaderMaterial_failure_blur")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.01, 0.008, 0.008, 0.54)
+
+[node name="GlassFrame" type="Panel" parent="PanelRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_failure_frame")
+
+[node name="SettingAmbientVFX" parent="PanelRoot" instance=ExtResource("3_ambient")]
+layout_mode = 1
+
+[node name="SettingLocalLightVFX" parent="PanelRoot" instance=ExtResource("4_light")]
+layout_mode = 1
+
+[node name="OuterMargin" type="MarginContainer" parent="PanelRoot"]
+layout_mode = 1
+offset_right = 1915.0
+offset_bottom = 1084.0
+theme_override_constants/margin_left = 188
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 188
+
+[node name="ShellPanel" type="Control" parent="PanelRoot/OuterMargin"]
+custom_minimum_size = Vector2(760, 520)
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ShellMargin" type="MarginContainer" parent="PanelRoot/OuterMargin/ShellPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 34
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="MainVBox" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.42, 1)
+theme_override_font_sizes/font_size = 46
+text = "作战失败"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+layout_mode = 2
+
+[node name="Body" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+custom_minimum_size = Vector2(0, 320)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="MessageLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.9, 0.84, 0.95)
+theme_override_font_sizes/font_size = 24
+text = "少女倒在了森林边界内。已保存本局获得的金币。"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="SummaryLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 0.82, 1)
+theme_override_font_sizes/font_size = 26
+text = "本局击杀  0    |    当前金币  0"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 42
+
+[node name="RetryButton" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/ButtonRow" instance=ExtResource("5_button")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(210, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "再来一次"
+
+[node name="MenuButton" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/ButtonRow" instance=ExtResource("5_button")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(230, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "返回主菜单"

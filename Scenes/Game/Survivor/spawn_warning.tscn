@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/spawn_warning.gd" id="1_warning"]
+
+[node name="SpawnWarning" type="Node2D"]
+z_index = 5
+script = ExtResource("1_warning")
+
+[node name="LineA" type="Line2D" parent="."]
+points = PackedVector2Array(-28, -28, 28, 28)
+width = 7.0
+default_color = Color(1, 0.06, 0.02, 1)
+antialiased = true
+
+[node name="LineB" type="Line2D" parent="."]
+points = PackedVector2Array(-28, 28, 28, -28)
+width = 7.0
+default_color = Color(1, 0.06, 0.02, 1)
+antialiased = true

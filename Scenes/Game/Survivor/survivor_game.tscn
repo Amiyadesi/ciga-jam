@@ -1,0 +1,270 @@
+[gd_scene format=3 uid="uid://cmi3roi7qg1fm"]
+
+[ext_resource type="Script" uid="uid://bltw0c7bhm67b" path="res://Scenes/Game/Survivor/survivor_game.gd" id="1_game"]
+[ext_resource type="PackedScene" uid="uid://dl7b3wmwdq67u" path="res://Scenes/UI/PauseScreen/pause_screen.tscn" id="2_pause"]
+[ext_resource type="PackedScene" uid="uid://b7hivg2dnaer8" path="res://Scenes/UI/Menu/setting_screen.tscn" id="3_setting"]
+[ext_resource type="PackedScene" uid="uid://bqydxj5ddmk0b" path="res://Scenes/Game/Survivor/stamina_orb.tscn" id="4_stamina"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/failure_screen.tscn" id="5_failure"]
+[ext_resource type="PackedScene" uid="uid://bfo4brn0sxrti" path="res://Scenes/Game/Survivor/hotbar.tscn" id="6_hotbar"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/anchor_detail_panel.tscn" id="7_detail"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/level_up_panel.tscn" id="8_levelup"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/orb.tscn" id="9_orb"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_boundary"]
+size = Vector2(128, 128)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.02, 0.025, 0.03, 0.74)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.75, 0.88, 0.62, 0.45)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.02, 0.024, 0.032, 0.7)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.86, 0.68, 1, 0.28)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="SurvivorGame" type="Node2D" unique_id=491727456]
+script = ExtResource("1_game")
+
+[node name="World" type="Node2D" parent="." unique_id=2127470349]
+
+[node name="Ground" type="Polygon2D" parent="World" unique_id=622170149]
+z_index = -20
+color = Color(0.17, 0.33, 0.19, 1)
+polygon = PackedVector2Array(0, 0, 5760, 0, 5760, 3240, 0, 3240)
+
+[node name="Roads" type="Node2D" parent="World" unique_id=319830469]
+z_index = -10
+
+[node name="Road1" type="Line2D" parent="World/Roads" unique_id=1572994255]
+width = 210.0
+default_color = Color(0.42, 0.34, 0.25, 1)
+antialiased = true
+
+[node name="Road2" type="Line2D" parent="World/Roads" unique_id=1471112343]
+width = 210.0
+default_color = Color(0.42, 0.34, 0.25, 1)
+antialiased = true
+
+[node name="Road3" type="Line2D" parent="World/Roads" unique_id=1725585389]
+width = 210.0
+default_color = Color(0.42, 0.34, 0.25, 1)
+antialiased = true
+
+[node name="Boundaries" type="Node2D" parent="World" unique_id=1704929408]
+
+[node name="NorthWall" type="StaticBody2D" parent="World/Boundaries" unique_id=946807330]
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Boundaries/NorthWall" unique_id=1105464087]
+shape = SubResource("RectangleShape2D_boundary")
+
+[node name="SouthWall" type="StaticBody2D" parent="World/Boundaries" unique_id=851125859]
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Boundaries/SouthWall" unique_id=2120691513]
+shape = SubResource("RectangleShape2D_boundary")
+
+[node name="WestWall" type="StaticBody2D" parent="World/Boundaries" unique_id=1141730329]
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Boundaries/WestWall" unique_id=1773178550]
+shape = SubResource("RectangleShape2D_boundary")
+
+[node name="EastWall" type="StaticBody2D" parent="World/Boundaries" unique_id=1462608937]
+collision_layer = 4
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Boundaries/EastWall" unique_id=1631779309]
+shape = SubResource("RectangleShape2D_boundary")
+
+[node name="Obstacles" type="Node2D" parent="World" unique_id=659139688]
+
+[node name="Anchors" type="Node2D" parent="World" unique_id=1261863925]
+
+[node name="Enemies" type="Node2D" parent="World" unique_id=373659281]
+
+[node name="Projectiles" type="Node2D" parent="World" unique_id=358901588]
+
+[node name="Pickups" type="Node2D" parent="World" unique_id=1230615058]
+
+[node name="PlacementPreview" type="Node2D" parent="World" unique_id=1212060983]
+visible = false
+z_index = 20
+
+[node name="PreviewVisual" type="Polygon2D" parent="World/PlacementPreview" unique_id=597326615]
+color = Color(0.42, 0.75, 1, 0.4)
+polygon = PackedVector2Array(0, -34, 28, -12, 24, 24, 0, 38, -24, 24, -28, -12)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1505688894]
+zoom = Vector2(0.82, 0.82)
+position_smoothing_enabled = true
+position_smoothing_speed = 7.0
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1910305484]
+layer = 10
+
+[node name="Root" type="Control" parent="HUD" unique_id=2097594938]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="WaveLabel" type="Label" parent="HUD/Root" unique_id=1103946283]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -110.0
+offset_right = 110.0
+offset_bottom = 47.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.88, 0.94, 1, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_hud")
+text = "第 1/3 波"
+vertical_alignment = 1
+
+[node name="TopBar" type="HBoxContainer" parent="HUD/Root" unique_id=1952956121]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = 68.0
+grow_horizontal = 2
+theme_override_constants/separation = 12
+
+[node name="GoldLabel" type="Label" parent="HUD/Root/TopBar" unique_id=685073141]
+custom_minimum_size = Vector2(150, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.36, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_hud")
+text = "金币 0"
+vertical_alignment = 1
+
+[node name="HpOrb" parent="HUD/Root/TopBar" unique_id=1198752374 instance=ExtResource("9_orb")]
+layout_mode = 2
+title_text = "HP"
+liquid_color = Color(0.82, 0.18, 0.14, 1)
+liquid_back_color = Color(0.28, 0.04, 0.04, 1)
+danger_color = Color(1, 0.72, 0.4, 1)
+rim_color = Color(0.18, 0.18, 0.2, 1)
+bg_color = Color(0, 0, 0, 0.72)
+shine_color = Color(1, 1, 1, 0.18)
+title_color = Color(1, 0.84, 0.84, 0.92)
+value_color = Color(1, 0.94, 0.94, 0.96)
+alert_value_color = Color(1, 0.86, 0.56, 1)
+
+[node name="HouseLabel" type="Label" parent="HUD/Root/TopBar" unique_id=1107512864]
+custom_minimum_size = Vector2(176, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.72, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_hud")
+text = "房子 50/50"
+vertical_alignment = 1
+
+[node name="Spacer" type="Control" parent="HUD/Root/TopBar" unique_id=1129313521]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StaminaOrb" parent="HUD/Root/TopBar" unique_id=2126124474 instance=ExtResource("4_stamina")]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="HUD/Root" unique_id=705363514]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 24.0
+offset_top = 130.0
+offset_right = -24.0
+offset_bottom = 174.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.9, 0.94, 0.98, 0.92)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_status")
+text = "准备阶段"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LevelUpButton" type="Button" parent="HUD/Root" unique_id=1914704340]
+visible = false
+custom_minimum_size = Vector2(144, 58)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 28.0
+offset_top = -29.0
+offset_right = 172.0
+offset_bottom = 29.0
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "升级"
+
+[node name="Hotbar" parent="HUD/Root" unique_id=1432649507 instance=ExtResource("6_hotbar")]
+layout_mode = 1
+
+[node name="AnchorDetailPanel" parent="HUD/Root" unique_id=167237236 instance=ExtResource("7_detail")]
+visible = false
+layout_mode = 1
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LevelUpPanel" parent="HUD/Root" unique_id=577352745 instance=ExtResource("8_levelup")]
+visible = false
+layout_mode = 1
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ExpProgressBar" type="ProgressBar" parent="HUD/Root" unique_id=334170422]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -27.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 23
+
+[node name="SettingScreen" parent="HUD" unique_id=992903176 instance=ExtResource("3_setting")]
+visible = false
+
+[node name="FailureScreen" parent="HUD" unique_id=1015607612 instance=ExtResource("5_failure")]
+visible = false
+
+[node name="PauseScreen" parent="HUD" unique_id=1183853779 instance=ExtResource("2_pause")]
+visible = false

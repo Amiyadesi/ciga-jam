@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SkillCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+
+[resource]
+script = ExtResource("1_skill_data")
+id = 1006
+name = "魔力增幅III"
+value = 0.5
+rarity = 3
+prerequisite = 1005
+description = "玩家攻击力增加50%"
+group_id = 2

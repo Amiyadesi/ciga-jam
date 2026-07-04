@@ -1,0 +1,30 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/VFX/mine_explosion_vfx.gd" id="1_vfx"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_explosion"]
+emission_shape = 1
+emission_sphere_radius = 8.0
+spread = 180.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 140.0
+initial_velocity_max = 240.0
+scale_min = 2.0
+scale_max = 4.6
+color = Color(1, 0.56, 0.18, 1)
+
+[node name="MineExplosionVfx" type="Node2D"]
+script = ExtResource("1_vfx")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+one_shot = true
+explosiveness = 1.0
+amount = 22
+lifetime = 0.45
+process_material = SubResource("ParticleProcessMaterial_explosion")
+
+[node name="Ring" type="Line2D" parent="."]
+default_color = Color(1, 0.56, 0.18, 0.9)
+width = 6.0
+closed = true
+points = PackedVector2Array(100, 0, 70.7107, -70.7107, 0, -100, -70.7107, -70.7107, -100, 0, -70.7107, 70.7107, 0, 100, 70.7107, 70.7107)

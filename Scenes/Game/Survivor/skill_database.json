@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1001,
+    "name": "快速咏唱I",
+    "value": 0.15,
+    "value2": 0.0,
+    "rarity": 1,
+    "prerequisite": 0,
+    "description": "玩家攻击速度增加15%",
+    "group_id": 1
+  },
+  {
+    "id": 1002,
+    "name": "快速咏唱III",
+    "value": 0.3,
+    "value2": 0.0,
+    "rarity": 2,
+    "prerequisite": 1001,
+    "description": "玩家攻击速度增加30%",
+    "group_id": 1
+  },
+  {
+    "id": 1003,
+    "name": "快速咏唱III",
+    "value": 0.5,
+    "value2": 0.0,
+    "rarity": 3,
+    "prerequisite": 1002,
+    "description": "玩家攻击速度增加50%",
+    "group_id": 1
+  },
+  {
+    "id": 1004,
+    "name": "魔力增幅I",
+    "value": 0.15,
+    "value2": 0.0,
+    "rarity": 1,
+    "prerequisite": 0,
+    "description": "玩家攻击力增加15%",
+    "group_id": 2
+  },
+  {
+    "id": 1005,
+    "name": "魔力增幅II",
+    "value": 0.3,
+    "value2": 0.0,
+    "rarity": 2,
+    "prerequisite": 1004,
+    "description": "玩家攻击力增加30%",
+    "group_id": 2
+  },
+  {
+    "id": 1006,
+    "name": "魔力增幅III",
+    "value": 0.5,
+    "value2": 0.0,
+    "rarity": 3,
+    "prerequisite": 1005,
+    "description": "玩家攻击力增加50%",
+    "group_id": 2
+  },
+  {
+    "id": 1007,
+    "name": "爆裂魔法I",
+    "value": 25.0,
+    "value2": 100.0,
+    "rarity": 2,
+    "prerequisite": 0,
+    "description": "对{1}范围内的敌人造成{0}%溅射伤害",
+    "group_id": 3
+  },
+  {
+    "id": 1008,
+    "name": "爆裂魔法II",
+    "value": 50.0,
+    "value2": 130.0,
+    "rarity": 3,
+    "prerequisite": 1007,
+    "description": "对{1}范围内的敌人造成{0}%溅射伤害",
+    "group_id": 3
+  }
+]

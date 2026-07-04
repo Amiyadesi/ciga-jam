@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://cjf71x8tssf00"]
+
+[ext_resource type="Script" uid="uid://b0w75em1fjxpj" path="res://Scenes/Game/Survivor/anchor_projectile.gd" id="1_anchor"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_anchor"]
+radius = 15.0
+
+[node name="AnchorProjectile" type="Area2D" unique_id=473117035]
+collision_layer = 8
+collision_mask = 4
+script = ExtResource("1_anchor")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1943352167]
+shape = SubResource("CircleShape2D_anchor")
+
+[node name="Trail" type="Line2D" parent="." unique_id=1330234545]
+points = PackedVector2Array(0, 0, -38, 0)
+width = 5.0
+default_color = Color(1, 0.82, 0.28, 0.55)
+antialiased = true
+
+[node name="Visual" type="Polygon2D" parent="." unique_id=1216978603]
+color = Color(0.9, 0.72, 0.28, 1)
+polygon = PackedVector2Array(20, 0, 2, 11, -14, 7, -7, 0, -14, -7, 2, -11)

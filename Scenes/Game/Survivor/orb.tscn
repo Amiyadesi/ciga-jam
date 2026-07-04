@@ -1,0 +1,73 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/orb.gd" id="1_orb"]
+[ext_resource type="Shader" path="res://reousrces/shader/circle_progress.gdshader" id="2_circle"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_orb"]
+shader = ExtResource("2_circle")
+shader_parameter/progress = 1.0
+shader_parameter/liquid_color = Color(0.18, 0.74, 0.92, 1)
+shader_parameter/liquid_back_color = Color(0.06, 0.32, 0.55, 1)
+shader_parameter/danger_color = Color(1, 0.24, 0, 1)
+shader_parameter/rim_color = Color(0.88, 0.96, 1, 1)
+shader_parameter/bg_color = Color(0, 0, 0, 0.24)
+shader_parameter/shine_color = Color(1, 1, 1, 0.28)
+shader_parameter/wave_speed = 2.0
+shader_parameter/wave_amplitude = 0.05
+shader_parameter/wave_frequency = 2.0
+shader_parameter/rim_thickness = 0.1
+shader_parameter/circle_radius = 0.85
+
+[node name="Orb" type="Control"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 3
+script = ExtResource("1_orb")
+shader = ExtResource("2_circle")
+title_text = "ORB"
+
+[node name="Orb" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_orb")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -43.0
+offset_top = -33.0
+offset_right = 33.0
+offset_bottom = 43.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(4.675, 4.675)
+mouse_filter = 2
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -42.0
+offset_top = -3.0
+offset_right = 42.0
+offset_bottom = 19.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.77, 0.93, 1, 0.92)
+theme_override_font_sizes/font_size = 15
+text = "ORB"
+horizontal_alignment = 1
+
+[node name="ValueLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -44.0
+offset_top = 19.0
+offset_right = 44.0
+offset_bottom = 43.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.88, 0.96, 1, 0.92)
+theme_override_font_sizes/font_size = 15
+text = "100/100"
+horizontal_alignment = 1

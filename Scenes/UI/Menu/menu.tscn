@@ -1,0 +1,158 @@
+[gd_scene load_steps=6 format=3 uid="uid://dytj5nsptdlmh"]
+
+[ext_resource type="Script" uid="uid://bs2nd1thdokg1" path="res://Scenes/UI/Menu/Menu.cs" id="1_j7r1e"]
+[ext_resource type="PackedScene" uid="uid://dssid7iw4aqb6" path="res://Scenes/UIorgan/ShaderButton/shader_button.tscn" id="2_qq7hl"]
+[ext_resource type="PackedScene" uid="uid://b7hivg2dnaer8" path="res://Scenes/UI/Menu/setting_screen.tscn" id="3_8inha"]
+[ext_resource type="PackedScene" uid="uid://bbq46x1emgrc3" path="res://Scenes/UI/Menu/thank_screen.tscn" id="4_n2mnh"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/Menu/growth_screen.tscn" id="5_growth"]
+
+[node name="Menu" type="Control" unique_id=1516953145]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_j7r1e")
+
+[node name="ButtonLayer" type="Control" parent="." unique_id=839531387]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="ButtonLayer" unique_id=345806564]
+self_modulate = Color(0.02, 0.02, 0.03, 0.18)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MonitorOverlay" type="Control" parent="ButtonLayer" unique_id=1908715323]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ScanlineLayer" type="ColorRect" parent="ButtonLayer/MonitorOverlay" unique_id=534118220]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.72, 0.88, 1, 0.08)
+
+[node name="BootFlash" type="ColorRect" parent="ButtonLayer/MonitorOverlay" unique_id=984871306]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.88, 0.95, 1, 1)
+
+[node name="RecLabel" type="Label" parent="ButtonLayer/MonitorOverlay" unique_id=806516330]
+layout_mode = 1
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 176.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 18
+text = "REC  CAM-01"
+
+[node name="StatusLabel" type="Label" parent="ButtonLayer/MonitorOverlay" unique_id=806516331]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -250.0
+offset_top = 18.0
+offset_right = -24.0
+offset_bottom = 50.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 18
+text = "OBSERVATION ONLINE"
+horizontal_alignment = 2
+
+[node name="Label" type="Label" parent="ButtonLayer" unique_id=977062346]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -92.0
+offset_top = -243.0
+offset_right = 92.0
+offset_bottom = -179.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 46
+text = "视界窗口"
+
+[node name="Label2" type="Label" parent="ButtonLayer" unique_id=1466311174]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 7.0
+offset_top = -188.0
+offset_right = 227.0
+offset_bottom = -158.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+text = "—————— Boundary Window"
+
+[node name="StartButton" parent="ButtonLayer" unique_id=1318297190 instance=ExtResource("2_qq7hl")]
+layout_mode = 1
+offset_top = -16.0
+offset_bottom = 16.0
+bb_text = "[color=gold]开始游戏"
+
+[node name="SettingButton" parent="ButtonLayer" unique_id=1628144557 instance=ExtResource("2_qq7hl")]
+layout_mode = 1
+offset_top = 56.0
+offset_bottom = 88.0
+bb_text = "[color=yellow]Setting"
+
+[node name="GrowthButton" parent="ButtonLayer" instance=ExtResource("2_qq7hl")]
+layout_mode = 1
+offset_top = 130.0
+offset_bottom = 162.0
+bb_text = "[color=cyan]成长"
+
+[node name="ExitButton" parent="ButtonLayer" unique_id=1822536416 instance=ExtResource("2_qq7hl")]
+layout_mode = 1
+offset_top = 204.0
+offset_bottom = 236.0
+bb_text = "[color=red]Quit"
+
+[node name="WindowUiScaler" type="Node" parent="ButtonLayer" unique_id=189883472]
+
+[node name="SettingScreen" parent="." unique_id=285638123 instance=ExtResource("3_8inha")]
+visible = false
+layout_mode = 1
+color = Color(0, 0, 0, 0)
+modal_offset = Vector2(0, 0)
+
+[node name="ThankScreen" parent="." unique_id=1166487123 instance=ExtResource("4_n2mnh")]
+visible = false
+layout_mode = 1
+
+[node name="GrowthScreen" parent="." instance=ExtResource("5_growth")]
+visible = false
+layout_mode = 1

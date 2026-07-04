@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AnchorData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/Behaviors/projectile_anchor_behavior.tscn" id="2_behavior"]
+
+[resource]
+script = ExtResource("1_anchor_data")
+anchor_id = "xiu_xiu"
+display_name = "咻咻"
+short_name = "咻咻"
+max_hp = 50.0
+attack_damage = 10.0
+attack_cooldown = 0.33333334
+price = 1000
+attack_type = "单体"
+attack_radius = 200.0
+trigger_radius = 160.0
+full_damage_radius = 36.0
+min_damage_ratio = 0.3
+default_animation = &"idle"
+tint = Color(0.42, 0.75, 1, 1)
+behavior_scene = ExtResource("2_behavior")

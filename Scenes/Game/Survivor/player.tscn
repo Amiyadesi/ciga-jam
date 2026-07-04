@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/player.gd" id="1_player"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_player"]
+radius = 22.0
+height = 58.0
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 6
+script = ExtResource("1_player")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_player")
+
+[node name="Visuals" type="Node2D" parent="."]
+
+[node name="Body" type="Polygon2D" parent="Visuals"]
+color = Color(0.18, 0.47, 0.86, 1)
+polygon = PackedVector2Array(-22, -28, 18, -24, 26, 10, 0, 30, -24, 14)
+
+[node name="Face" type="Polygon2D" parent="Visuals"]
+color = Color(0.9, 0.78, 0.58, 1)
+polygon = PackedVector2Array(-8, -32, 18, -22, 12, -3, -10, -8)
+
+[node name="GunPivot" type="Node2D" parent="."]
+position = Vector2(12, -5)
+
+[node name="GunLine" type="Line2D" parent="GunPivot"]
+points = PackedVector2Array(0, 0, 44, 0)
+width = 8.0
+default_color = Color(0.12, 0.12, 0.13, 1)
+antialiased = true
+
+[node name="Muzzle" type="Marker2D" parent="GunPivot"]
+position = Vector2(48, 0)

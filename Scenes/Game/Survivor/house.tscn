@@ -1,0 +1,54 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/house.gd" id="1_house"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/house_default.tres" id="2_data"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_house"]
+size = Vector2(150, 132)
+
+[sub_resource type="Animation" id="Animation_house_idle"]
+resource_name = "idle"
+length = 0.1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_house"]
+_data = {
+"idle": SubResource("Animation_house_idle")
+}
+
+[node name="House" type="StaticBody2D"]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("1_house")
+data = ExtResource("2_data")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_house")
+
+[node name="Visual" type="Polygon2D" parent="."]
+color = Color(0.72, 0.38, 0.2, 1)
+polygon = PackedVector2Array(-78, 18, -78, -48, -20, -96, 78, -48, 78, 18, 46, 18, 46, 70, -46, 70, -46, 18)
+
+[node name="Door" type="Polygon2D" parent="."]
+color = Color(0.26, 0.13, 0.08, 1)
+polygon = PackedVector2Array(-18, 68, -18, 20, 20, 20, 20, 68)
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+visible = false
+position = Vector2(0, -8)
+scale = Vector2(1.5, 1.5)
+centered = true
+
+[node name="HpLabel" type="Label" parent="."]
+offset_left = -58.0
+offset_top = 98.0
+offset_right = 58.0
+offset_bottom = 128.0
+theme_override_colors/font_color = Color(1, 0.92, 0.72, 1)
+theme_override_font_sizes/font_size = 24
+text = "50/50"
+horizontal_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_house")
+}

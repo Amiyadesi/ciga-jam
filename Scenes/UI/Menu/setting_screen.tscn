@@ -1,0 +1,427 @@
+[gd_scene format=3 uid="uid://b7hivg2dnaer8"]
+
+[ext_resource type="Script" uid="uid://bj5gndwwp7gnn" path="res://Scenes/UI/Menu/setting_screen.gd" id="1_g8frt"]
+[ext_resource type="Shader" uid="uid://dtcjm8c7boghc" path="res://reousrces/shader/blur.gdshader" id="2_cob4t"]
+[ext_resource type="PackedScene" uid="uid://cre0p744n82p7" path="res://addons/enhance_save_system/Components/InputRemapping/keybinding_ui.tscn" id="2_keybind"]
+[ext_resource type="PackedScene" uid="uid://c8eisrp4kcf52" path="res://Scenes/UI/Menu/setting_ambient_vfx.tscn" id="3_ambient"]
+[ext_resource type="PackedScene" uid="uid://uacp5p6j6svs" path="res://Scenes/UI/Menu/setting_local_light_vfx.tscn" id="4_light"]
+[ext_resource type="PackedScene" uid="uid://dssid7iw4aqb6" path="res://Scenes/UIorgan/ShaderButton/shader_button.tscn" id="6_4xm8e"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1ajee"]
+shader = ExtResource("2_cob4t")
+shader_parameter/strength = 3.3
+shader_parameter/mix_percentage = 0.3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cob4t"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.98, 0.72, 0.36, 0.26)
+
+[node name="SettingScreen" type="Container" unique_id=992903176]
+process_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_g8frt")
+color = Color(0, 0, 0, 0.68)
+close_modal_on_clicked = false
+modal_offset_unit = 2
+modal_offset = Vector2(0, 0.08)
+metadata/_custom_type_script = "uid://c5r3km1v05kuj"
+
+[node name="PanelRoot" type="Control" parent="." unique_id=1130941315]
+layout_mode = 2
+
+[node name="GlassBlur" type="ColorRect" parent="PanelRoot" unique_id=1001869974]
+material = SubResource("ShaderMaterial_1ajee")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.01, 0.008, 0.008, 0.54)
+
+[node name="GlassFrame" type="Panel" parent="PanelRoot" unique_id=1226879505]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cob4t")
+
+[node name="SettingAmbientVFX" parent="PanelRoot" unique_id=619286044 instance=ExtResource("3_ambient")]
+layout_mode = 1
+
+[node name="SettingLocalLightVFX" parent="PanelRoot" unique_id=1255298102 instance=ExtResource("4_light")]
+layout_mode = 1
+
+[node name="OuterMargin" type="MarginContainer" parent="PanelRoot" unique_id=839050083]
+layout_mode = 1
+offset_right = 1915.0
+offset_bottom = 1084.0
+theme_override_constants/margin_left = 188
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 188
+
+[node name="ShellPanel" type="Control" parent="PanelRoot/OuterMargin" unique_id=591160233]
+custom_minimum_size = Vector2(760, 520)
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ShellMargin" type="MarginContainer" parent="PanelRoot/OuterMargin/ShellPanel" unique_id=420910952]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 34
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="MainVBox" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin" unique_id=587131745]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="TopTabs" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox" unique_id=1479300512]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="AudioTab" type="Button" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/TopTabs" unique_id=1492802419]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "音频"
+
+[node name="ControlsTab" type="Button" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/TopTabs" unique_id=1691251863]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "控制"
+
+[node name="HSeparator" type="HSeparator" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox" unique_id=1636192371]
+layout_mode = 2
+
+[node name="Pages" type="Control" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox" unique_id=1745211366]
+custom_minimum_size = Vector2(0, 360)
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="AudioPage" type="ScrollContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages" unique_id=290465396]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage" unique_id=19600364]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="PageMargin" type="MarginContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer" unique_id=379529146]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 14
+
+[node name="Rows" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin" unique_id=2073585346]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 24
+
+[node name="MasterRow" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows" unique_id=702676749]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RowContent" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/MasterRow" unique_id=1213625802]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="Title" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/MasterRow/RowContent" unique_id=1073505619]
+custom_minimum_size = Vector2(210, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.9, 0.92, 1)
+text = "主音量"
+vertical_alignment = 1
+
+[node name="MasterSlider" type="HSlider" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/MasterRow/RowContent" unique_id=281392494]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MasterValue" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/MasterRow/RowContent" unique_id=1237243148]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 0.82, 1)
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Underline" type="ColorRect" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/MasterRow" unique_id=219557030]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+color = Color(0.5, 0.43, 0.24, 0.9)
+
+[node name="MusicRow" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows" unique_id=1820903063]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RowContent" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/MusicRow" unique_id=1977931089]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="Title" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/MusicRow/RowContent" unique_id=2126449077]
+custom_minimum_size = Vector2(210, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.9, 0.92, 1)
+text = "音乐音量"
+vertical_alignment = 1
+
+[node name="MusicSlider" type="HSlider" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/MusicRow/RowContent" unique_id=1809396623]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MusicValue" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/MusicRow/RowContent" unique_id=813139078]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 0.82, 1)
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Underline" type="ColorRect" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/MusicRow" unique_id=1546182947]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+color = Color(0.5, 0.43, 0.24, 0.9)
+
+[node name="SfxRow" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows" unique_id=861316045]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RowContent" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/SfxRow" unique_id=1619691276]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="Title" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/SfxRow/RowContent" unique_id=794620423]
+custom_minimum_size = Vector2(210, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.9, 0.92, 1)
+text = "音效音量"
+vertical_alignment = 1
+
+[node name="SfxSlider" type="HSlider" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/SfxRow/RowContent" unique_id=951956286]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SfxValue" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/SfxRow/RowContent" unique_id=1161772615]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 0.82, 1)
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Underline" type="ColorRect" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/SfxRow" unique_id=1893947558]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+color = Color(0.5, 0.43, 0.24, 0.9)
+
+[node name="AmbientRow" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows" unique_id=990556598]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RowContent" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/AmbientRow" unique_id=1819322076]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="Title" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/AmbientRow/RowContent" unique_id=1556730447]
+custom_minimum_size = Vector2(210, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.9, 0.92, 1)
+text = "环境音量"
+vertical_alignment = 1
+
+[node name="AmbientSlider" type="HSlider" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/AmbientRow/RowContent" unique_id=1313758122]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AmbientValue" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/AmbientRow/RowContent" unique_id=199364852]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 0.82, 1)
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Underline" type="ColorRect" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/AmbientRow" unique_id=524212648]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+color = Color(0.5, 0.43, 0.24, 0.9)
+
+[node name="ScreenShakeRow" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows" unique_id=166761245]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RowContent" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/ScreenShakeRow" unique_id=1179658363]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="Title" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/ScreenShakeRow/RowContent" unique_id=1680926173]
+custom_minimum_size = Vector2(210, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.9, 0.92, 1)
+text = "屏幕震动"
+vertical_alignment = 1
+
+[node name="ScreenShakeSlider" type="HSlider" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/ScreenShakeRow/RowContent" unique_id=1038774580]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ScreenShakeValue" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/ScreenShakeRow/RowContent" unique_id=451028860]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 0.82, 1)
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Underline" type="ColorRect" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/PageMargin/Rows/ScreenShakeRow" unique_id=995615319]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+color = Color(0.5, 0.43, 0.24, 0.9)
+
+[node name="Footer" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer" unique_id=400786080]
+layout_mode = 2
+size_flags_vertical = 10
+
+[node name="ResetAudioButton" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/Footer" unique_id=1045943778 instance=ExtResource("6_4xm8e")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 70)
+layout_mode = 2
+offset_transform_enabled = true
+offset_transform_scale = Vector2(0.85, 0.8)
+theme_override_font_sizes/font_size = 30
+text = "恢复默认"
+
+[node name="Spacer" type="Control" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/AudioPage/VBoxContainer/Footer" unique_id=1772684819]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ControlsPage" type="ScrollContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages" unique_id=1245696693]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="PageMargin" type="MarginContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/ControlsPage" unique_id=1515622101]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_right = 14
+
+[node name="KeybindingUI" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Pages/ControlsPage/PageMargin" unique_id=1774433162 instance=ExtResource("2_keybind")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+label_map = {
+"attack": "锚点攻击",
+"down": "向下",
+"left": "向左",
+"pause": "暂停",
+"right": "向右",
+"sprint": "奔跑",
+"up": "向上"
+}
+
+[node name="HintLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox" unique_id=1883273207]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.68, 0.68, 0.72, 1)
+text = "调整各类音量。改动会立即应用并自动保存。"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ReturnButton" parent="PanelRoot" unique_id=1318297190 instance=ExtResource("6_4xm8e")]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 2
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 29.0
+offset_top = -78.0
+offset_right = 157.0
+offset_bottom = -26.0
+grow_horizontal = 1
+grow_vertical = 0
+theme_override_font_sizes/font_size = 30
+text = "退出"
+
+[node name="ThanksButton" parent="PanelRoot" unique_id=362932258 instance=ExtResource("6_4xm8e")]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -165.0
+offset_top = -74.0
+offset_right = -37.0
+offset_bottom = -22.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 30
+text = "感谢"

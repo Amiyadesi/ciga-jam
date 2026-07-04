@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Behaviors/projectile_anchor_behavior.gd" id="1_behavior"]
+
+[node name="ProjectileAnchorBehavior" type="Node"]
+script = ExtResource("1_behavior")
+shot_count = 1
+spread_offset = 16.0
+projectile_color = Color(0.66, 0.88, 1, 1)

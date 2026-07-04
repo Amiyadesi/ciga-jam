@@ -1,0 +1,78 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/level_up_panel.gd" id="1_levelup"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/skill_card_option.tscn" id="2_card"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_levelup"]
+content_margin_left = 22.0
+content_margin_top = 18.0
+content_margin_right = 22.0
+content_margin_bottom = 18.0
+bg_color = Color(0.02, 0.022, 0.032, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.72, 0.32, 0.42)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="LevelUpPanel" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+script = ExtResource("1_levelup")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -250.0
+offset_right = 500.0
+offset_bottom = 250.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_levelup")
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.86, 0.52, 1)
+theme_override_font_sizes/font_size = 36
+text = "选择成长"
+horizontal_alignment = 1
+
+[node name="OptionBox" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="Option1" parent="Panel/Margin/VBox/OptionBox" instance=ExtResource("2_card")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Option2" parent="Panel/Margin/VBox/OptionBox" instance=ExtResource("2_card")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Option3" parent="Panel/Margin/VBox/OptionBox" instance=ExtResource("2_card")]
+layout_mode = 2
+size_flags_horizontal = 3

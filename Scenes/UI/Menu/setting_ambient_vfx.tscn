@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://c8eisrp4kcf52"]
+
+[ext_resource type="Shader" uid="uid://d05lwuucdgs3p" path="res://Scenes/UI/Menu/setting_scan_lines.gdshader" id="2_scan"]
+[ext_resource type="Shader" uid="uid://d4i4mq111ln5h" path="res://Scenes/UI/Menu/setting_defect_frame.gdshader" id="4_frame"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
+shader = ExtResource("2_scan")
+shader_parameter/line_color = Color(1, 1, 1, 0.3019608)
+shader_parameter/intensity = 0.1
+shader_parameter/scan_density = 118.0
+shader_parameter/scan_speed = 0.11
+shader_parameter/block_density = 19.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_frame"]
+shader = ExtResource("4_frame")
+shader_parameter/frame_color = Color(1, 1, 1, 0.6313726)
+shader_parameter/intensity = 0.72
+shader_parameter/border_width = 0.012
+shader_parameter/gap_density = 22.0
+
+[node name="SettingAmbientVFX" type="Control" unique_id=1314616085]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SystemFaultLayer" type="ColorRect" parent="." unique_id=417090073]
+material = SubResource("ShaderMaterial_scan")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="DefectFrameLayer" type="ColorRect" parent="." unique_id=1147278596]
+material = SubResource("ShaderMaterial_frame")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)

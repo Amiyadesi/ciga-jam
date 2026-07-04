@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://0hn7v00wyjhs"]
+
+[ext_resource type="Script" uid="uid://cbkhlt42hr583" path="res://Scenes/UIorgan/floating_text.gd" id="1_m830u"]
+
+[node name="FloatText" type="Node2D" unique_id=639449919]
+script = ExtResource("1_m830u")
+
+[node name="Label" type="Label" parent="." unique_id=729079266]
+modulate = Color(1, 0.87, 0.48, 1)
+custom_minimum_size = Vector2(100, 32)
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_font_sizes/font_size = 44
+text = "100"
+horizontal_alignment = 1
+vertical_alignment = 1

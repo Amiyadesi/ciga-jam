@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/orb.tscn" id="1_orb"]
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/stamina_orb.gd" id="2_stamina"]
+
+[node name="StaminaOrb" instance=ExtResource("1_orb")]
+script = ExtResource("2_stamina")
+title_text = "STAMINA"
+liquid_color = Color(0.18, 0.74, 0.92, 1)
+liquid_back_color = Color(0.06, 0.32, 0.55, 1)
+danger_color = Color(1, 0.24, 0, 1)
+rim_color = Color(0.88, 0.96, 1, 1)
+bg_color = Color(0, 0, 0, 0.24)
+shine_color = Color(1, 1, 1, 0.28)
+title_color = Color(0.77, 0.93, 1, 0.92)
+value_color = Color(0.88, 0.96, 1, 0.92)
+alert_value_color = Color(0.62, 0.95, 1, 1)

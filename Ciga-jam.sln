@@ -1,0 +1,19 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ciga-jam", "Ciga-jam.csproj", "{2020EEC5-86AD-4564-87BF-14C36301D710}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+	Debug|Any CPU = Debug|Any CPU
+	ExportDebug|Any CPU = ExportDebug|Any CPU
+	ExportRelease|Any CPU = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2020EEC5-86AD-4564-87BF-14C36301D710}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2020EEC5-86AD-4564-87BF-14C36301D710}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2020EEC5-86AD-4564-87BF-14C36301D710}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{2020EEC5-86AD-4564-87BF-14C36301D710}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{2020EEC5-86AD-4564-87BF-14C36301D710}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{2020EEC5-86AD-4564-87BF-14C36301D710}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+	EndGlobalSection
+EndGlobal

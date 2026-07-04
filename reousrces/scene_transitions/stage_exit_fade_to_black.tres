@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="SceneTransition" format=3 uid="uid://cv8u1dbsg4nkq"]
+
+[ext_resource type="Script" uid="uid://dx7jq7vtturfr" path="res://addons/scene_manager/autoload/transition.gd" id="1_transition"]
+
+[resource]
+script = ExtResource("1_transition")
+duration = 0.35

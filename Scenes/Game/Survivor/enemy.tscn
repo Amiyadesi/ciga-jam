@@ -1,0 +1,43 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/enemy.gd" id="1_enemy"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_enemy"]
+radius = 20.0
+height = 50.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_attack"]
+radius = 34.0
+
+[sub_resource type="Animation" id="Animation_enemy_idle"]
+resource_name = "idle"
+length = 0.1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_enemy"]
+_data = {
+"idle": SubResource("Animation_enemy_idle")
+}
+
+[node name="Enemy" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 5
+script = ExtResource("1_enemy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_enemy")
+
+[node name="Visual" type="Polygon2D" parent="."]
+color = Color(0.72, 0.18, 0.18, 1)
+polygon = PackedVector2Array(-23, -22, 14, -28, 28, -4, 17, 24, -18, 23, -29, -3)
+
+[node name="AttackArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea"]
+shape = SubResource("CircleShape2D_attack")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_enemy")
+}
