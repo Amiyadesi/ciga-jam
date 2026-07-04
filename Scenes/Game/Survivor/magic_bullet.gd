@@ -8,6 +8,8 @@ extends Area2D
 var damage: float = 1.0
 var splash_percent: float = 0.0
 var splash_radius: float = 0.0
+var pierce_enabled: bool = false
+var pierce_falloff: float = 0.0
 var source: Node
 
 @onready var visual: Polygon2D = $Visual
@@ -32,13 +34,15 @@ func _physics_process(delta: float) -> void:
 
 
 # Initializes projectile combat values and visual tint.
-func setup(origin: Vector2, direction: Vector2, attack_damage: float, projectile_color: Color, projectile_source: Node = null, splash_damage_percent: float = 0.0, splash_range: float = 0.0) -> void:
+func setup(origin: Vector2, direction: Vector2, attack_damage: float, projectile_color: Color, projectile_source: Node = null, splash_damage_percent: float = 0.0, splash_range: float = 0.0, projectile_modifiers: Dictionary = {}) -> void:
 	global_position = origin
 	_direction = direction.normalized() if direction.length_squared() > 0.01 else Vector2.RIGHT
 	damage = maxf(1.0, attack_damage)
 	source = projectile_source
 	splash_percent = maxf(0.0, splash_damage_percent)
 	splash_radius = maxf(0.0, splash_range)
+	pierce_enabled = bool(projectile_modifiers.get("pierce_enabled", false))
+	pierce_falloff = clampf(float(projectile_modifiers.get("pierce_falloff", 0.0)), 0.0, 0.95)
 	rotation = _direction.angle()
 	if visual != null:
 		visual.color = projectile_color
@@ -52,8 +56,12 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	_hit_targets.append(body)
 	body.call("take_damage", damage)
+	_apply_source_on_hit(body)
 	_apply_splash(body)
-	queue_free()
+	if not pierce_enabled:
+		queue_free()
+		return
+	damage = maxf(1.0, damage * (1.0 - pierce_falloff))
 
 
 # Applies optional in-run explosion skill damage around the hit point.
@@ -69,3 +77,10 @@ func _apply_splash(primary: Node2D) -> void:
 		var enemy := node as Node2D
 		if enemy.global_position.distance_to(primary.global_position) <= splash_radius and enemy.has_method("take_damage"):
 			enemy.call("take_damage", splash_damage)
+			_apply_source_on_hit(enemy)
+
+
+# Applies follow-up status effects supplied by the projectile source.
+func _apply_source_on_hit(target: Node2D) -> void:
+	if source != null and source.has_method("apply_on_hit_effects"):
+		source.call("apply_on_hit_effects", target)

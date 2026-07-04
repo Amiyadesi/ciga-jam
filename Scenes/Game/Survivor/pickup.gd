@@ -1,6 +1,6 @@
 class_name SurvivorPickup
 extends Area2D
-## Experience or gold pickup that magnetizes into the player.
+## 经验球或金币球，会在玩家靠近后吸附过去。
 
 signal collected(kind: String, amount: int)
 
@@ -17,13 +17,12 @@ var _target: Node2D
 var _is_collecting: bool = false
 
 
-# Adds this pickup to a group so the game root can count and debug drops.
+# 注册掉落分组，便于统一管理。
 func _ready() -> void:
 	add_to_group("pickups")
-	monitoring = false
 
 
-# Moves toward the player after entering magnet radius.
+# 玩家靠近后开始吸附，并飞向玩家。
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(_target):
 		return
@@ -37,7 +36,7 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 
 
-# Configures pickup type, amount, target, and color.
+# 初始化掉落类型、数值、目标和外观颜色。
 func setup(pickup_kind: String, pickup_amount: int, player: Node2D) -> void:
 	kind = pickup_kind
 	amount = maxi(1, pickup_amount)

@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://Scenes/Game/Survivor/anchor_detail_panel.gd" id="1_detail"]
+[ext_resource type="Script" path="res://Scenes/UIorgan/ButtonEffectModule/button_effect_module.gd" id="2_button_effect"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_detail"]
 content_margin_left = 22.0
@@ -59,9 +60,35 @@ custom_minimum_size = Vector2(58, 48)
 layout_mode = 2
 text = "X"
 
+[node name="ButtonEffectModule" type="Node" parent="Panel/Margin/VBox/Header/CloseButton"]
+script = ExtResource("2_button_effect")
+
 [node name="BodyLabel" type="Label" parent="Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.93, 0.96, 1)
 theme_override_font_sizes/font_size = 27
 text = "耐久值：0 / 0"
 autowrap_mode = 3
+
+[node name="ActionSection" type="VBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="UpgradeButton" type="Button" parent="Panel/Margin/VBox/ActionSection"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "升级 1000金币"
+
+[node name="ButtonEffectModule" type="Node" parent="Panel/Margin/VBox/ActionSection/UpgradeButton"]
+script = ExtResource("2_button_effect")
+
+[node name="RecycleButton" type="Button" parent="Panel/Margin/VBox/ActionSection"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.52, 1, 0.52, 1)
+theme_override_font_sizes/font_size = 24
+text = "拆除 +600金币"
+
+[node name="ButtonEffectModule" type="Node" parent="Panel/Margin/VBox/ActionSection/RecycleButton"]
+script = ExtResource("2_button_effect")

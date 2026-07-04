@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="SkillCardData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="SkillCardData" format=3 uid="uid://cilbttcp472q4"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Script" uid="uid://nxuvr6gx84ch" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
 
 [resource]
 script = ExtResource("1_skill_data")
@@ -10,5 +10,5 @@ value = 50.0
 value2 = 130.0
 rarity = 3
 prerequisite = 1007
-description = "对{1}范围内的敌人造成{0}%溅射伤害"
+description = "玩家攻击对{1}范围内的敌人造成{0}%溅射伤害"
 group_id = 3

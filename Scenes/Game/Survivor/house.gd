@@ -1,6 +1,6 @@
 class_name SurvivorHouse
 extends StaticBody2D
-## Defended house target split into data definition and world entity.
+## 被守护的房子实体，负责承伤、血条和展示。
 
 signal health_changed(current_hp: int, max_hp: int)
 signal died
@@ -10,7 +10,7 @@ signal died
 @onready var visual: Polygon2D = $Visual
 @onready var door: Polygon2D = $Door
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
-@onready var hp_label: Label = $HpLabel
+@onready var health_bar: ProgressBar = $HealthBar
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 var current_hp: float = 50.0
@@ -18,39 +18,39 @@ var max_hp: float = 50.0
 var _is_alive: bool = true
 
 
-# Initializes the house HP and group membership.
+# 初始化房子生命值并注册分组。
 func _ready() -> void:
 	add_to_group("house")
 	_apply_data()
 	current_hp = max_hp
-	_refresh_label()
+	_refresh_health_bar()
 	health_changed.emit(int(round(current_hp)), int(round(max_hp)))
 
 
-# Applies enemy damage and emits failure once HP reaches zero.
+# 承受敌人伤害，血量归零后发出死亡信号。
 func take_damage(amount: float) -> void:
 	if amount <= 0.0 or not _is_alive:
 		return
 	current_hp = maxf(0.0, current_hp - amount)
 	_flash_damage()
-	_refresh_label()
+	_refresh_health_bar()
 	health_changed.emit(int(round(current_hp)), int(round(max_hp)))
 	if is_zero_approx(current_hp):
 		_is_alive = false
 		died.emit()
 
 
-# Returns true while the house can still be targeted.
+# 返回房子是否还存活。
 func is_alive() -> bool:
 	return _is_alive
 
 
-# Returns whether the house should remain targetable for enemies.
+# 返回敌人是否还应该索敌房子。
 func is_targetable() -> bool:
 	return _is_alive and current_hp > 0.0
 
 
-# Returns UI-ready details used by shared HUD code.
+# 返回详情面板或 HUD 需要的房子数据。
 func get_detail_data() -> Dictionary:
 	return {
 		"display_name": "房子",
@@ -59,13 +59,16 @@ func get_detail_data() -> Dictionary:
 	}
 
 
-# Updates the small world label above the placeholder house.
-func _refresh_label() -> void:
-	if hp_label != null:
-		hp_label.text = "%d/%d" % [int(round(current_hp)), int(round(max_hp))]
+# 刷新房子脚下世界血条。
+func _refresh_health_bar() -> void:
+	if health_bar == null:
+		return
+	health_bar.max_value = maxf(1.0, max_hp)
+	health_bar.value = clampf(current_hp, 0.0, max_hp)
+	health_bar.visible = true
 
 
-# Plays placeholder hit feedback without requiring final art.
+# 播放简易受击闪色反馈。
 func _flash_damage() -> void:
 	var tween := create_tween()
 	var target_color: Color = Color(0.72, 0.38, 0.20, 1.0)
@@ -79,7 +82,7 @@ func _flash_damage() -> void:
 	tween.tween_property(visual, "color", target_color, 0.12)
 
 
-# Applies the authored house resource to visuals and labels.
+# 把房子资源数据同步到显示节点。
 func _apply_data() -> void:
 	if data == null:
 		return
@@ -95,8 +98,8 @@ func _apply_data() -> void:
 		visual.color = house_data.get("tint") as Color
 	if door != null:
 		door.visible = not has_frames
-	if hp_label != null:
-		hp_label.position = house_data.get("health_bar_offset") as Vector2
+	if health_bar != null:
+		health_bar.position = house_data.get("health_bar_offset") as Vector2
 	var default_animation: StringName = house_data.get("default_animation") as StringName
 	if default_animation.is_empty():
 		default_animation = &"idle"

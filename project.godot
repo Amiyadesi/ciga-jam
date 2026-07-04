@@ -43,6 +43,10 @@ project/assembly_name="Ciga-jam"
 
 enabled=PackedStringArray("res://addons/dialogue_manager/plugin.cfg", "res://addons/enhance_save_system/plugin.cfg", "res://addons/phantom_camera/plugin.cfg", "res://addons/richtext2/plugin.cfg", "res://addons/scene_manager/plugin.cfg", "res://addons/simple-gui-transitions/plugin.cfg", "res://addons/sound_manager/plugin.cfg")
 
+[gui]
+
+theme/custom="uid://136hg33mma1d"
+
 [gui_transitions]
 
 config/default/auto_start=true

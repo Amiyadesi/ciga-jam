@@ -1,10 +1,17 @@
 extends ComponentBase
 class_name ButtonEffectModule
 
+## 按钮轻量交互反馈组件。
+
+## 缓动曲线类型。
 @export var ease_type: Tween.EaseType
+## 过渡类型。
 @export var trans_type: Tween.TransitionType
+## 单次动画时长。
 @export var anim_duration:float = 0.07
+## 悬停或点击时的缩放幅度。
 @export var scale_amount:Vector2 = Vector2.ONE * 1.1
+## 悬停或点击时的随机旋转幅度。
 @export var rotation_amount:float = 3.
 
 @onready var button:Button = get_parent()
@@ -37,6 +44,7 @@ func _reset_tween() -> void:
 	if tween:
 		tween.kill()
 	tween = create_tween().set_ease(ease_type).set_trans(trans_type).set_parallel()
+	tween.set_ignore_time_scale(true)
 
 func _on_mouse_hovered(hovered:bool) -> void:
 	_reset_tween()

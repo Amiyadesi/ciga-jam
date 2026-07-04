@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyCatalog" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/enemy_catalog.gd" id="1_catalog"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/enemy_slime_blue.tres" id="2_blue"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/enemy_bat.tres" id="3_bat"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/enemy_slime_green.tres" id="4_green"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/enemy_slime_red.tres" id="5_red"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/enemy_slime_king.tres" id="6_king"]
+
+[resource]
+script = ExtResource("1_catalog")
+entries = {
+"bat": ExtResource("3_bat"),
+"slime_blue": ExtResource("2_blue"),
+"slime_green": ExtResource("4_green"),
+"slime_king": ExtResource("6_king"),
+"slime_red": ExtResource("5_red")
+}

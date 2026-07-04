@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="AnchorData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/Behaviors/slow_aura_anchor_behavior.tscn" id="2_behavior"]
+
+[resource]
+script = ExtResource("1_anchor_data")
+anchor_id = "frost_circle"
+display_name = "寒冰法阵"
+short_name = "寒冰"
+max_hp = -1.0
+attack_damage = 0.0
+attack_cooldown = 0.0
+price = 1200
+attack_type = "减速"
+attack_radius = 240.0
+trigger_radius = 240.0
+full_damage_radius = 36.0
+min_damage_ratio = 0.3
+default_animation = &"idle"
+tint = Color(0.48, 0.86, 1, 1)
+behavior_scene = ExtResource("2_behavior")
+behavior_params = {
+"slow_percent": 0.6,
+"slow_duration": 0.35,
+"tick_interval": 0.2
+}

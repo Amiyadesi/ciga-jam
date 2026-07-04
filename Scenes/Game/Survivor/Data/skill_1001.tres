@@ -1,12 +1,11 @@
-[gd_resource type="Resource" script_class="SkillCardData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="SkillCardData" format=3 uid="uid://bpq72h3nh23bn"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Script" uid="uid://nxuvr6gx84ch" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
 
 [resource]
 script = ExtResource("1_skill_data")
 id = 1001
 name = "快速咏唱I"
 value = 0.15
-rarity = 1
-description = "玩家攻击速度增加15%"
+description = "玩家攻击冷却减少15%"
 group_id = 1

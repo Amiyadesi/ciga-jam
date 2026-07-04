@@ -15,6 +15,25 @@ _data = {
 "idle": SubResource("Animation_house_idle")
 }
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_house_bar_bg"]
+bg_color = Color(0.08, 0.09, 0.10, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.98, 0.84, 0.64, 0.55)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_house_bar_fill"]
+bg_color = Color(0.92, 0.28, 0.22, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
 [node name="House" type="StaticBody2D"]
 collision_layer = 4
 collision_mask = 0
@@ -38,15 +57,16 @@ position = Vector2(0, -8)
 scale = Vector2(1.5, 1.5)
 centered = true
 
-[node name="HpLabel" type="Label" parent="."]
-offset_left = -58.0
-offset_top = 98.0
-offset_right = 58.0
-offset_bottom = 128.0
-theme_override_colors/font_color = Color(1, 0.92, 0.72, 1)
-theme_override_font_sizes/font_size = 24
-text = "50/50"
-horizontal_alignment = 1
+[node name="HealthBar" type="ProgressBar" parent="."]
+visible = false
+offset_left = -60.0
+offset_top = 96.0
+offset_right = 60.0
+offset_bottom = 116.0
+show_percentage = false
+theme_override_styles/background = SubResource("StyleBoxFlat_house_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_house_bar_fill")
+value = 100.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {

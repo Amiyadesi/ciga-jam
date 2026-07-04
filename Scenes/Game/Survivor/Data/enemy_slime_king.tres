@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/enemy_data.gd" id="1_enemy_data"]
+
+[resource]
+script = ExtResource("1_enemy_data")
+enemy_id = "slime_king"
+display_name = "史莱姆王"
+base_max_hp = 360.0
+hp_per_level = 120.0
+base_attack_damage = 18.0
+damage_per_level = 8.0
+base_speed = 96.0
+speed_per_level = 4.0
+attack_cooldown = 1.2
+exp_rewards = PackedFloat32Array(180, 220, 260, 320, 380, 450, 520, 620, 720, 860)
+gold_rewards = PackedInt32Array(220, 260, 320, 380, 460, 540, 640, 760, 900, 1080)
+tint = Color(0.44, 0.74, 1, 1)
+scale_multiplier = 1.9
+is_boss = true
+summon_enemy_id = "slime_blue"
+summon_count = 4
+summon_interval = 5.5
+summon_ring_radius = 140.0

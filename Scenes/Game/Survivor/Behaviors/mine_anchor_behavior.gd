@@ -45,6 +45,8 @@ func _explode() -> void:
 		var distance: float = enemy.global_position.distance_to(_anchor.global_position)
 		var ratio: float = _compute_damage_ratio(distance, radius, full_damage_radius, min_damage_ratio)
 		enemy.call("take_damage", base_damage * ratio)
+		if _anchor.has_method("apply_on_hit_effects"):
+			_anchor.call("apply_on_hit_effects", enemy)
 	_spawn_feedback(radius)
 
 

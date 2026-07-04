@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SkillCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+
+[resource]
+script = ExtResource("1_skill_data")
+id = 1010
+name = "贯穿魔法II"
+value = 25.0
+rarity = 3
+prerequisite = 1009
+description = "玩家攻击命中敌人后会贯穿，每命中一个敌人，伤害衰减{0}%"
+group_id = 4

@@ -3,8 +3,27 @@
 [ext_resource type="Script" path="res://Scenes/Game/Survivor/player.gd" id="1_player"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_player"]
-radius = 22.0
-height = 58.0
+radius = 26.0
+height = 72.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sprint_bg"]
+bg_color = Color(0.03, 0.05, 0.07, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.88, 0.96, 1, 0.34)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sprint_fill"]
+bg_color = Color(0.24, 0.82, 0.98, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 1
@@ -15,6 +34,7 @@ script = ExtResource("1_player")
 shape = SubResource("CapsuleShape2D_player")
 
 [node name="Visuals" type="Node2D" parent="."]
+scale = Vector2(1.18, 1.18)
 
 [node name="Body" type="Polygon2D" parent="Visuals"]
 color = Color(0.18, 0.47, 0.86, 1)
@@ -25,13 +45,25 @@ color = Color(0.9, 0.78, 0.58, 1)
 polygon = PackedVector2Array(-8, -32, 18, -22, 12, -3, -10, -8)
 
 [node name="GunPivot" type="Node2D" parent="."]
-position = Vector2(12, -5)
+position = Vector2(15, -8)
 
 [node name="GunLine" type="Line2D" parent="GunPivot"]
-points = PackedVector2Array(0, 0, 44, 0)
-width = 8.0
+points = PackedVector2Array(0, 0, 52, 0)
+width = 9.0
 default_color = Color(0.12, 0.12, 0.13, 1)
 antialiased = true
 
 [node name="Muzzle" type="Marker2D" parent="GunPivot"]
-position = Vector2(48, 0)
+position = Vector2(56, 0)
+
+[node name="SprintBar" type="ProgressBar" parent="."]
+visible = false
+offset_left = -46.0
+offset_top = -82.0
+offset_right = 46.0
+offset_bottom = -68.0
+show_percentage = false
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_sprint_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_sprint_fill")
+value = 100.0

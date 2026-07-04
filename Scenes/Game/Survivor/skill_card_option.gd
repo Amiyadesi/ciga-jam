@@ -1,6 +1,6 @@
 class_name SkillCardOption
 extends Button
-## Authored 3-choice level-up card that renders one skill definition.
+## 升级三选一卡片，用来展示单条技能定义。
 
 const SkillDb = preload("res://Scenes/Game/Survivor/skill_database.gd")
 
@@ -10,7 +10,7 @@ const SkillDb = preload("res://Scenes/Game/Survivor/skill_database.gd")
 @onready var desc_label: Label = $CardMargin/CardVBox/DescriptionLabel
 
 
-# Applies one skill option dictionary to the authored card.
+# 把一条技能数据渲染到卡片 UI 上。
 func set_skill_data(skill: Dictionary) -> void:
 	var rarity: int = int(skill.get("rarity", 1))
 	set_meta("skill_id", int(skill.get("id", 0)))
@@ -21,7 +21,7 @@ func set_skill_data(skill: Dictionary) -> void:
 	_apply_rarity_theme(rarity)
 
 
-# Returns a human-readable rarity string for the card header.
+# 返回卡片顶部要显示的稀有度文案。
 func _rarity_text(rarity: int) -> String:
 	match rarity:
 		1:
@@ -34,15 +34,15 @@ func _rarity_text(rarity: int) -> String:
 			return "未知"
 
 
-# Returns a short prerequisite summary for the bottom helper line.
+# 返回底部使用的前置需求摘要。
 func _prerequisite_text(prerequisite: int) -> String:
 	if prerequisite <= 0:
 		return "无"
-	var name: String = SkillDb.get_skill_name(prerequisite)
-	return name if not name.is_empty() else "#%d" % prerequisite
+	var prerequisite_name: String = SkillDb.get_skill_name(prerequisite)
+	return prerequisite_name if not prerequisite_name.is_empty() else "#%d" % prerequisite
 
 
-# Tints the card accent according to rarity while keeping layout authored.
+# 根据稀有度给卡片主色调上色。
 func _apply_rarity_theme(rarity: int) -> void:
 	var title_color: Color = Color(0.98, 0.92, 0.82, 1.0)
 	var accent_color: Color

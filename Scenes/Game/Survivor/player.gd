@@ -1,6 +1,6 @@
 class_name SurvivorPlayer
 extends CharacterBody2D
-## Player controller and automatic magic attack for the CIGA survivor slice.
+## 生存模式玩家控制器，负责移动、冲刺、自动攻击和升级数据。
 
 signal health_changed(current_hp: int, max_hp: int)
 signal died
@@ -16,8 +16,8 @@ const SkillDb = preload("res://Scenes/Game/Survivor/skill_database.gd")
 @export var friction: float = 2200.0
 @export var max_hp: int = 100
 @export var base_attack_damage: int = 15
-@export var base_attack_speed: float = 5.0
-@export var attack_range: float = 200.0
+@export var base_attack_cooldown: float = 0.25
+@export var attack_range: float = 230.0
 @export var base_max_stamina: float = 100.0
 @export var stamina_per_growth_level: float = 10.0
 @export var stamina_drain_per_second: float = 12.0
@@ -28,25 +28,32 @@ const SkillDb = preload("res://Scenes/Game/Survivor/skill_database.gd")
 @onready var visual_root: Node2D = $Visuals
 @onready var magic_pivot: Node2D = $GunPivot
 @onready var muzzle: Marker2D = $GunPivot/Muzzle
+@onready var sprint_bar: ProgressBar = $SprintBar
+
+const MAX_LEVEL: int = 15
 
 var current_hp: int = 100
 var max_stamina: float = 100.0
 var current_stamina: float = 100.0
 var level: int = 1
+var total_exp: int = 0
 var current_exp: int = 0
+var pending_level_ups: int = 0
 var selected_skill_ids: Array[int] = []
 
 var _is_alive: bool = true
 var _is_sprinting: bool = false
 var _attack_timer: float = 0.0
 var _attack_multiplier: float = 1.0
-var _attack_speed_multiplier: float = 1.0
+var _attack_cooldown_multiplier: float = 1.0
 var _splash_percent: float = 0.0
 var _splash_radius: float = 0.0
+var _pierce_enabled: bool = false
+var _pierce_falloff: float = 0.0
 var _damage_cooldown_timer: float = 0.0
 
 
-# Initializes movement state and publishes starting HUD values.
+# 初始化玩家状态，并推送第一帧 HUD 数据。
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	current_hp = max_hp
@@ -54,10 +61,12 @@ func _ready() -> void:
 	current_stamina = max_stamina
 	health_changed.emit(current_hp, max_hp)
 	_emit_stamina_changed()
-	exp_changed.emit(current_exp, get_required_exp_for_next_level(), level)
+	_refresh_sprint_bar()
+	_sync_exp_alias()
+	exp_changed.emit(total_exp, get_required_exp_for_next_level(), level)
 
 
-# Moves the player and runs automatic combat.
+# 驱动移动、冲刺和自动攻击。
 func _physics_process(delta: float) -> void:
 	_damage_cooldown_timer = maxf(0.0, _damage_cooldown_timer - delta)
 	if not _is_alive:
@@ -78,7 +87,7 @@ func _physics_process(delta: float) -> void:
 	_update_auto_attack(delta)
 
 
-# Applies saved health values without trusting invalid persisted HP.
+# 应用存档血量，并防止非法残血把本局锁死。
 func apply_saved_health(saved_hp: int, saved_max_hp: int) -> void:
 	max_hp = maxi(1, saved_max_hp)
 	current_hp = clampi(saved_hp, 1, max_hp)
@@ -86,61 +95,89 @@ func apply_saved_health(saved_hp: int, saved_max_hp: int) -> void:
 	health_changed.emit(current_hp, max_hp)
 
 
-# Applies permanent out-of-run stamina growth.
+# 应用局外体力成长。
 func apply_growth_modifiers(stamina_level: int) -> void:
 	max_stamina = maxf(1.0, base_max_stamina + float(maxi(0, stamina_level)) * stamina_per_growth_level)
 	current_stamina = max_stamina
 	_emit_stamina_changed()
+	_refresh_sprint_bar()
 
 
-# Applies current in-run skill modifiers after a level-up selection.
+# 应用本局升级卡牌带来的运行时修正。
 func apply_run_skill_modifiers(modifiers: Dictionary) -> void:
-	_attack_multiplier = float(modifiers.get("attack_multiplier", 1.0))
-	_attack_speed_multiplier = float(modifiers.get("attack_speed_multiplier", 1.0))
-	_splash_percent = float(modifiers.get("splash_percent", 0.0))
-	_splash_radius = float(modifiers.get("splash_radius", 0.0))
+	_attack_multiplier = float(modifiers.get("player_attack_multiplier", modifiers.get("attack_multiplier", 1.0)))
+	_attack_cooldown_multiplier = float(modifiers.get("player_attack_cooldown_multiplier", 1.0))
+	_splash_percent = float(modifiers.get("player_splash_percent", modifiers.get("splash_percent", 0.0)))
+	_splash_radius = float(modifiers.get("player_splash_radius", modifiers.get("splash_radius", 0.0)))
+	_pierce_enabled = bool(modifiers.get("player_pierce_enabled", false))
+	_pierce_falloff = float(modifiers.get("player_pierce_falloff", 0.0))
 
 
-# Adds EXP and emits level-ready when the threshold is reached.
+# 增加累计经验，并在有待选升级时发出信号。
 func add_exp(amount: int) -> void:
 	if amount <= 0:
 		return
-	current_exp += amount
-	exp_changed.emit(current_exp, get_required_exp_for_next_level(), level)
-	if current_exp >= get_required_exp_for_next_level():
+	var old_pending: int = pending_level_ups
+	total_exp += amount
+	_sync_exp_alias()
+	_sync_pending_level_ups()
+	exp_changed.emit(total_exp, get_required_exp_for_next_level(), level)
+	if pending_level_ups > old_pending:
 		level_ready.emit()
 
 
-# Consumes the current level threshold and increments player level.
+# 消耗一次待选升级，并把所选技能记入本局状态。
 func level_up_with_skill(skill_id: int) -> void:
-	var required: int = get_required_exp_for_next_level()
-	if current_exp < required:
+	if pending_level_ups <= 0 or level >= MAX_LEVEL:
 		return
-	current_exp -= required
-	level += 1
-	selected_skill_ids.append(skill_id)
-	var modifiers: Dictionary = SkillDb.build_player_modifiers(selected_skill_ids)
+	level = mini(MAX_LEVEL, level + 1)
+	if skill_id > 0:
+		selected_skill_ids.append(skill_id)
+	_sync_pending_level_ups()
+	_sync_exp_alias()
+	var modifiers: Dictionary = SkillDb.build_run_modifiers(selected_skill_ids)
 	apply_run_skill_modifiers(modifiers)
-	exp_changed.emit(current_exp, get_required_exp_for_next_level(), level)
+	exp_changed.emit(total_exp, get_required_exp_for_next_level(), level)
+	if pending_level_ups > 0:
+		level_ready.emit()
 
 
-# Returns document formula result for the next player level.
+# 返回从当前等级升到下一等级所需经验。
+func get_required_exp_for_level(current_level: int) -> int:
+	return 5 * current_level * current_level + 15 * current_level + 30
+
+
+# 返回经验条当前应该显示的累计区间。
+func get_level_interval_bounds() -> Dictionary:
+	var min_exp: int = _get_cumulative_exp_to_reach_level(level)
+	var max_exp: int = min_exp if level >= MAX_LEVEL else _get_cumulative_exp_to_reach_level(level + 1)
+	return {
+		"min_exp": min_exp,
+		"max_exp": max_exp,
+		"is_max_level": level >= MAX_LEVEL,
+	}
+
+
+# 返回下一次升级对应的累计经验阈值。
 func get_required_exp_for_next_level() -> int:
-	return 5 * level * level + 15 * level + 30
+	return int(get_level_interval_bounds().get("max_exp", 0))
 
 
-# Reduces HP and emits death once.
+# 承受伤害，并维持玩家受击冷却。
 func take_damage(amount: int) -> void:
 	if amount <= 0 or not _is_alive or _damage_cooldown_timer > 0.0:
 		return
 	_damage_cooldown_timer = damage_invulnerability_duration
 	current_hp = maxi(0, current_hp - amount)
 	health_changed.emit(current_hp, max_hp)
+	var scene_root: Node = get_tree().current_scene
+	if scene_root != null and scene_root.has_method("apply_screen_shake"):
+		scene_root.call("apply_screen_shake", 0.22, 0.12)
 	if current_hp == 0:
 		_die()
 
 
-# Restores HP for later pickups or upgrades.
+# 恢复生命，供后续道具或升级使用。
 func heal(amount: int) -> void:
 	if amount <= 0 or not _is_alive:
 		return
@@ -148,7 +185,7 @@ func heal(amount: int) -> void:
 	health_changed.emit(current_hp, max_hp)
 
 
-# Drains or restores stamina depending on sprint intent and movement state.
+# 根据冲刺输入消耗或恢复体力。
 func _update_sprint_state(delta: float, input_dir: Vector2) -> void:
 	var wants_sprint: bool = Input.is_action_pressed("sprint") and input_dir != Vector2.ZERO
 	var can_sprint: bool = current_stamina > 0.0
@@ -160,15 +197,16 @@ func _update_sprint_state(delta: float, input_dir: Vector2) -> void:
 	else:
 		current_stamina = minf(max_stamina, current_stamina + stamina_recovery_per_second * delta)
 	_emit_stamina_changed()
+	_refresh_sprint_bar()
 
 
-# Publishes stamina values in both absolute and normalized form for HUDs.
+# 对外广播当前体力数值和比例。
 func _emit_stamina_changed() -> void:
 	var ratio: float = current_stamina / max_stamina if max_stamina > 0.0 else 0.0
 	stamina_changed.emit(current_stamina, max_stamina, clampf(ratio, 0.0, 1.0), _is_sprinting)
 
 
-# Flips the placeholder body toward horizontal movement while preserving vertical-facing behavior.
+# 只根据水平移动翻面，保留原本的竖直表现。
 func _update_facing(input_dir: Vector2) -> void:
 	if input_dir.x > 0.05:
 		visual_root.scale.x = 1.0
@@ -176,7 +214,7 @@ func _update_facing(input_dir: Vector2) -> void:
 		visual_root.scale.x = -1.0
 
 
-# Points the placeholder magic circle toward the current target or mouse fallback.
+# 让法杖朝向最近敌人，没有敌人时朝向鼠标。
 func _update_magic_pivot() -> void:
 	var target: Node2D = _find_nearest_enemy()
 	var aim_point: Vector2 = target.global_position if target != null else get_global_mouse_position()
@@ -185,7 +223,7 @@ func _update_magic_pivot() -> void:
 		magic_pivot.rotation = to_target.angle()
 
 
-# Fires magic bullets at the closest enemy in range based on attack speed.
+# 按攻击冷却向范围内最近敌人发射魔弹。
 func _update_auto_attack(delta: float) -> void:
 	_attack_timer = maxf(0.0, _attack_timer - delta)
 	if _attack_timer > 0.0:
@@ -193,15 +231,31 @@ func _update_auto_attack(delta: float) -> void:
 	var target: Node2D = _find_nearest_enemy()
 	if target == null:
 		return
-	_attack_timer = 1.0 / maxf(0.1, base_attack_speed * _attack_speed_multiplier)
+	_attack_timer = maxf(0.01, base_attack_cooldown * _attack_cooldown_multiplier)
 	var bullet: Area2D = BULLET_SCENE.instantiate() as Area2D
-	get_parent().add_child(bullet)
+	var projectile_parent: Node = _get_projectile_parent()
+	if projectile_parent == null:
+		projectile_parent = get_parent()
+	projectile_parent.add_child(bullet)
 	var damage: int = maxi(1, int(round(float(base_attack_damage) * _attack_multiplier)))
 	var direction: Vector2 = muzzle.global_position.direction_to(target.global_position)
-	bullet.call("setup", muzzle.global_position, direction, damage, Color(0.92, 0.48, 1.0, 1.0), self, _splash_percent, _splash_radius)
+	bullet.call(
+		"setup",
+		muzzle.global_position,
+		direction,
+		damage,
+		Color(0.92, 0.48, 1.0, 1.0),
+		self,
+		_splash_percent,
+		_splash_radius,
+		{
+			"pierce_enabled": _pierce_enabled,
+			"pierce_falloff": _pierce_falloff,
+		}
+	)
 
 
-# Finds the nearest enemy inside player attack radius.
+# 查找玩家攻击范围内最近的敌人。
 func _find_nearest_enemy() -> Node2D:
 	var best: Node2D = null
 	var best_distance_sq: float = INF
@@ -216,9 +270,55 @@ func _find_nearest_enemy() -> Node2D:
 	return best
 
 
-# Stops input and notifies the game root that combat ended.
+# 优先把子弹挂到统一的世界投射物节点下。
+func _get_projectile_parent() -> Node:
+	if get_tree() == null:
+		return null
+	var scene_root: Node = get_tree().current_scene
+	if scene_root != null:
+		var projectile_root: Node = scene_root.get_node_or_null("World/Projectiles")
+		if projectile_root != null:
+			return projectile_root
+	return get_parent()
+
+
+# 玩家死亡后停止冲刺并通知外部。
 func _die() -> void:
 	_is_alive = false
 	_is_sprinting = false
 	_emit_stamina_changed()
+	_refresh_sprint_bar()
 	died.emit()
+
+
+# 把累计经验同步回兼容字段，避免旧调用方崩掉。
+func _sync_exp_alias() -> void:
+	current_exp = total_exp
+
+
+# 根据累计经验重新计算待选升级次数。
+func _sync_pending_level_ups() -> void:
+	var unlocked_level: int = 1
+	while unlocked_level < MAX_LEVEL and total_exp >= _get_cumulative_exp_to_reach_level(unlocked_level + 1):
+		unlocked_level += 1
+	pending_level_ups = maxi(0, unlocked_level - level)
+
+
+# 计算到目标等级为止的累计经验阈值。
+func _get_cumulative_exp_to_reach_level(target_level: int) -> int:
+	if target_level <= 1:
+		return 0
+	var total: int = 0
+	for current_level in range(1, target_level):
+		total += get_required_exp_for_level(current_level)
+	return total
+
+
+# 刷新玩家头顶冲刺条，只有冲刺中或体力未回满时显示。
+func _refresh_sprint_bar() -> void:
+	if sprint_bar == null:
+		return
+	var ratio: float = current_stamina / max_stamina if max_stamina > 0.0 else 0.0
+	sprint_bar.max_value = 1.0
+	sprint_bar.value = clampf(ratio, 0.0, 1.0)
+	sprint_bar.visible = _is_sprinting or current_stamina < max_stamina - 0.01

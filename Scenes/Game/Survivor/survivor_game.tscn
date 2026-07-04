@@ -3,12 +3,14 @@
 [ext_resource type="Script" uid="uid://bltw0c7bhm67b" path="res://Scenes/Game/Survivor/survivor_game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://dl7b3wmwdq67u" path="res://Scenes/UI/PauseScreen/pause_screen.tscn" id="2_pause"]
 [ext_resource type="PackedScene" uid="uid://b7hivg2dnaer8" path="res://Scenes/UI/Menu/setting_screen.tscn" id="3_setting"]
-[ext_resource type="PackedScene" uid="uid://bqydxj5ddmk0b" path="res://Scenes/Game/Survivor/stamina_orb.tscn" id="4_stamina"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/stamina_orb.tscn" id="4_stamina"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/failure_screen.tscn" id="5_failure"]
 [ext_resource type="PackedScene" uid="uid://bfo4brn0sxrti" path="res://Scenes/Game/Survivor/hotbar.tscn" id="6_hotbar"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/anchor_detail_panel.tscn" id="7_detail"]
-[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/level_up_panel.tscn" id="8_levelup"]
+[ext_resource type="PackedScene" uid="uid://2bk0jtcsnhjd" path="res://Scenes/Game/Survivor/level_up_panel.tscn" id="8_levelup"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/orb.tscn" id="9_orb"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/anchor_recycle_dialog.tscn" id="10_recycle"]
+[ext_resource type="Script" uid="uid://i3xgym8bhl33" path="res://Scenes/UIorgan/ButtonEffectModule/button_effect_module.gd" id="11_button_effect"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boundary"]
 size = Vector2(128, 128)
@@ -29,21 +31,56 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
-content_margin_left = 14.0
-content_margin_top = 8.0
-content_margin_right = 14.0
-content_margin_bottom = 8.0
-bg_color = Color(0.02, 0.024, 0.032, 0.7)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_notice"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.04, 0.045, 0.06, 0.92)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.86, 0.68, 1, 0.28)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+border_color = Color(1, 0.76, 0.36, 0.46)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skill_panel"]
+content_margin_left = 14.0
+content_margin_top = 12.0
+content_margin_right = 14.0
+content_margin_bottom = 12.0
+bg_color = Color(0.02, 0.025, 0.03, 0.74)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.72, 0.36, 0.3)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exp_bg"]
+bg_color = Color(0.04, 0.05, 0.06, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.82, 0.92, 1, 0.24)
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exp_fill"]
+bg_color = Color(0.34, 0.96, 0.70, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="SurvivorGame" type="Node2D" unique_id=491727456]
 script = ExtResource("1_game")
@@ -187,37 +224,9 @@ title_color = Color(1, 0.84, 0.84, 0.92)
 value_color = Color(1, 0.94, 0.94, 0.96)
 alert_value_color = Color(1, 0.86, 0.56, 1)
 
-[node name="HouseLabel" type="Label" parent="HUD/Root/TopBar" unique_id=1107512864]
-custom_minimum_size = Vector2(176, 44)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.92, 0.72, 1)
-theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxFlat_hud")
-text = "房子 50/50"
-vertical_alignment = 1
-
 [node name="Spacer" type="Control" parent="HUD/Root/TopBar" unique_id=1129313521]
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="StaminaOrb" parent="HUD/Root/TopBar" unique_id=2126124474 instance=ExtResource("4_stamina")]
-layout_mode = 2
-
-[node name="StatusLabel" type="Label" parent="HUD/Root" unique_id=705363514]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_left = 24.0
-offset_top = 130.0
-offset_right = -24.0
-offset_bottom = 174.0
-grow_horizontal = 2
-theme_override_colors/font_color = Color(0.9, 0.94, 0.98, 0.92)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_status")
-text = "准备阶段"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="LevelUpButton" type="Button" parent="HUD/Root" unique_id=1914704340]
 visible = false
@@ -234,8 +243,44 @@ grow_vertical = 2
 theme_override_font_sizes/font_size = 24
 text = "升级"
 
+[node name="ButtonEffectModule" type="Node" parent="HUD/Root/LevelUpButton" unique_id=1862944682]
+script = ExtResource("11_button_effect")
+
 [node name="Hotbar" parent="HUD/Root" unique_id=1432649507 instance=ExtResource("6_hotbar")]
 layout_mode = 1
+
+[node name="SkillSummaryPanel" type="PanelContainer" parent="HUD/Root" unique_id=1751459821]
+visible = false
+layout_mode = 1
+offset_left = 24.0
+offset_top = 88.0
+offset_right = 324.0
+offset_bottom = 228.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_skill_panel")
+
+[node name="Margin" type="MarginContainer" parent="HUD/Root/SkillSummaryPanel" unique_id=686363541]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
+
+[node name="VBox" type="VBoxContainer" parent="HUD/Root/SkillSummaryPanel/Margin" unique_id=196229504]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="HUD/Root/SkillSummaryPanel/Margin/VBox" unique_id=1467839395]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.86, 0.52, 1)
+theme_override_font_sizes/font_size = 21
+text = "当前能力"
+
+[node name="SkillSummaryLabel" type="Label" parent="HUD/Root/SkillSummaryPanel/Margin/VBox" unique_id=1650295655]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.95, 1, 0.96)
+theme_override_font_sizes/font_size = 18
+text = "暂无"
+autowrap_mode = 3
 
 [node name="AnchorDetailPanel" parent="HUD/Root" unique_id=167237236 instance=ExtResource("7_detail")]
 visible = false
@@ -243,11 +288,33 @@ layout_mode = 1
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="LevelUpPanel" parent="HUD/Root" unique_id=577352745 instance=ExtResource("8_levelup")]
+[node name="AnchorRecycleDialog" parent="HUD/Root" unique_id=363293091 instance=ExtResource("10_recycle")]
 visible = false
 layout_mode = 1
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="LevelUpPanel" parent="HUD/Root" unique_id=577352745 instance=ExtResource("8_levelup")]
+layout_mode = 1
+
+[node name="CenterNoticeLabel" type="Label" parent="HUD/Root" unique_id=1215960534]
+visible = false
+custom_minimum_size = Vector2(320, 54)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -160.0
+offset_top = 210.0
+offset_right = 160.0
+offset_bottom = 264.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.94, 0.84, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_notice")
+text = "提示"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ExpProgressBar" type="ProgressBar" parent="HUD/Root" unique_id=334170422]
 layout_mode = 1
@@ -255,10 +322,29 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 18.0
 offset_top = -27.0
+offset_right = -18.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_font_sizes/font_size = 23
+show_percentage = false
+theme_override_styles/background = SubResource("StyleBoxFlat_exp_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_exp_fill")
+
+[node name="ValueLabel" type="Label" parent="HUD/Root/ExpProgressBar" unique_id=1973405843]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.95, 0.98, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0 / 50"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="SettingScreen" parent="HUD" unique_id=992903176 instance=ExtResource("3_setting")]
 visible = false

@@ -1,6 +1,6 @@
 class_name LevelUpPanel
 extends Control
-## Slow-time in-run skill selection panel.
+## 局内升级三选一面板。
 
 signal option_selected(skill_id: int)
 
@@ -10,7 +10,7 @@ signal option_selected(skill_id: int)
 var _buttons: Array[Button] = []
 
 
-# Collects authored option buttons.
+# 收集场景中已经摆好的三张卡片按钮。
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	for child in option_box.get_children():
@@ -21,7 +21,7 @@ func _ready() -> void:
 	hide()
 
 
-# Shows selectable skill options.
+# 打开面板并渲染当前可选技能。
 func open_options(options: Array[Dictionary]) -> void:
 	for i in range(_buttons.size()):
 		var button: Button = _buttons[i]
@@ -42,12 +42,12 @@ func open_options(options: Array[Dictionary]) -> void:
 	show()
 
 
-# Hides the panel after a choice.
+# 关闭升级面板。
 func close_panel() -> void:
 	hide()
 
 
-# Emits the selected skill id.
+# 发出玩家当前选中的技能 id。
 func _on_option_pressed(button: Button) -> void:
 	var skill_id: int = int(button.get_meta("skill_id", 0))
 	if skill_id <= 0:

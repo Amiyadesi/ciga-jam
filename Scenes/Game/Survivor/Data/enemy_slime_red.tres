@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/enemy_data.gd" id="1_enemy_data"]
+
+[resource]
+script = ExtResource("1_enemy_data")
+enemy_id = "slime_red"
+display_name = "火史莱姆"
+base_max_hp = 90.0
+hp_per_level = 40.0
+base_attack_damage = 5.0
+damage_per_level = 4.0
+base_speed = 118.0
+speed_per_level = 5.0
+attack_cooldown = 1.5
+exp_rewards = PackedFloat32Array(4, 6, 8, 12, 16, 20, 24, 30, 34, 38, 42, 47, 52, 57, 62)
+gold_rewards = PackedInt32Array(70, 75, 82, 89, 96, 105, 114, 123, 130, 140, 150, 160, 170, 180, 190)
+tint = Color(0.92, 0.32, 0.24, 1)

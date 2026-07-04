@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://Scenes/Game/Survivor/skill_card_option.gd" id="1_card"]
+[ext_resource type="Script" path="res://Scenes/UIorgan/ButtonEffectModule/button_effect_module.gd" id="2_button_effect"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
 bg_color = Color(0.06, 0.07, 0.09, 0.96)
@@ -30,6 +31,9 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_card")
 text = ""
 flat = true
 script = ExtResource("1_card")
+
+[node name="ButtonEffectModule" type="Node" parent="."]
+script = ExtResource("2_button_effect")
 
 [node name="CardMargin" type="MarginContainer" parent="."]
 layout_mode = 1

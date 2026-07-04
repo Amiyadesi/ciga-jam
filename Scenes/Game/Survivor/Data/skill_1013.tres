@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SkillCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+
+[resource]
+script = ExtResource("1_skill_data")
+id = 1013
+name = "强化魔法I"
+value = 15.0
+rarity = 1
+description = "所有魔法锚点的攻击力提升{0}%"
+group_id = 6

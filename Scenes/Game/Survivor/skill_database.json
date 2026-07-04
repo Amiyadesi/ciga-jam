@@ -6,17 +6,17 @@
     "value2": 0.0,
     "rarity": 1,
     "prerequisite": 0,
-    "description": "玩家攻击速度增加15%",
+    "description": "玩家攻击冷却减少15%",
     "group_id": 1
   },
   {
     "id": 1002,
-    "name": "快速咏唱III",
+    "name": "快速咏唱II",
     "value": 0.3,
     "value2": 0.0,
     "rarity": 2,
     "prerequisite": 1001,
-    "description": "玩家攻击速度增加30%",
+    "description": "玩家攻击冷却减少30%",
     "group_id": 1
   },
   {
@@ -26,7 +26,7 @@
     "value2": 0.0,
     "rarity": 3,
     "prerequisite": 1002,
-    "description": "玩家攻击速度增加50%",
+    "description": "玩家攻击冷却减少50%",
     "group_id": 1
   },
   {

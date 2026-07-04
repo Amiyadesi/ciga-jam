@@ -26,6 +26,7 @@ extends Resource
 
 @export_group("Behavior")
 @export var behavior_scene: PackedScene
+@export var behavior_params: Dictionary = {}
 
 
 # Returns a detail dictionary consumed by authored UI panels.
@@ -48,6 +49,7 @@ func to_runtime_dictionary(level: int, max_level: int) -> Dictionary:
 		"sprite_frames": sprite_frames,
 		"default_animation": default_animation,
 		"behavior_scene": behavior_scene,
+		"behavior_params": behavior_params.duplicate(true),
 		"tint": tint,
 		"level": level,
 		"max_level": max_level,

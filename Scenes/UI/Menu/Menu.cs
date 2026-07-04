@@ -86,24 +86,14 @@ public partial class Menu : Control
     // Returns from the credits modal to the settings modal.
     private async void _on_thank_return_requested()
     {
-        var tween = _thankScreen?.Call("close_modal").AsGodotObject() as Tween;
-        if (tween != null)
-        {
-            await ToSignal(tween, Tween.SignalName.Finished);
-        }
-
+        _thankScreen?.Call("close_modal");
         _settingScreen?.Call("open_modal");
     }
 
     // Opens the credits modal from settings.
     private async void _on_setting_thanks_requested()
     {
-        var tween = _settingScreen?.Call("close_modal").AsGodotObject() as Tween;
-        if (tween != null)
-        {
-            await ToSignal(tween, Tween.SignalName.Finished);
-        }
-
+        _settingScreen?.Call("close_modal");
         _thankScreen?.Call("open_modal");
     }
 

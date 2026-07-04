@@ -1,6 +1,6 @@
 class_name SurvivorOrb
 extends Control
-## Generic liquid orb HUD widget used for stamina and health meters.
+## 通用液体圆球 HUD 组件，可用于生命等百分比读数。
 
 @export var shader: Shader
 @export var title_text: String = "ORB"
@@ -21,29 +21,29 @@ extends Control
 var _material: ShaderMaterial
 
 
-# Duplicates the shader material so each orb instance can override its colors.
+# 复制一份独立材质，避免不同圆球实例互相串色。
 func _ready() -> void:
 	_prepare_material()
 	_apply_visuals()
 	set_meter(100.0, 100.0, 1.0, false)
 
 
-# Updates the orb fill, title, and numeric text from gameplay state.
-func set_meter(current: float, max_value: float, ratio: float, is_alert: bool = false) -> void:
+# 根据当前数值刷新圆球填充和百分比文本。
+func set_meter(_current: float, _max_value: float, ratio: float, is_alert: bool = false) -> void:
 	var clamped_ratio: float = clampf(ratio, 0.0, 1.0)
 	if _material != null:
 		_material.set_shader_parameter("progress", clamped_ratio)
-	value_label.text = "%d/%d" % [int(round(current)), int(round(max_value))]
+	value_label.text = "%d%%" % int(round(clamped_ratio * 100.0))
 	value_label.modulate = alert_value_color if is_alert else value_color
 
 
-# Updates only the orb title while preserving the existing layout.
+# 只更新标题，不改布局。
 func set_title(text: String) -> void:
 	title_text = text
 	title_label.text = title_text
 
 
-# Creates a per-instance material copy and applies the exported shader.
+# 创建实例独有材质并应用导出的 shader。
 func _prepare_material() -> void:
 	if orb.material is ShaderMaterial:
 		_material = (orb.material as ShaderMaterial).duplicate() as ShaderMaterial
@@ -54,7 +54,7 @@ func _prepare_material() -> void:
 		_material.shader = shader
 
 
-# Pushes exported colors into the shader material and visible labels.
+# 把导出颜色同步到 shader 和文本上。
 func _apply_visuals() -> void:
 	if _material != null:
 		_material.set_shader_parameter("liquid_color", liquid_color)

@@ -110,13 +110,15 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "音频"
+theme_override_font_sizes/font_size = 25
+text = "滑块"
 
 [node name="ControlsTab" type="Button" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/TopTabs" unique_id=1691251863]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 25
 text = "控制"
 
 [node name="HSeparator" type="HSeparator" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox" unique_id=1636192371]
@@ -387,8 +389,11 @@ label_map = {
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.68, 0.68, 0.72, 1)
-text = "调整各类音量。改动会立即应用并自动保存。"
+offset_transform_enabled = true
+offset_transform_position = Vector2(0, -300)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 64
+text = "调整各类音量,改动会立即应用并自动保存"
 horizontal_alignment = 1
 vertical_alignment = 1
 

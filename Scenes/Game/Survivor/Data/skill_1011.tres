@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SkillCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+
+[resource]
+script = ExtResource("1_skill_data")
+id = 1011
+name = "扩展结界I"
+value = 12.0
+rarity = 2
+description = "可放置的魔法锚点数量上限增加至{0}"
+group_id = 5

@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="AnchorData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="AnchorData" format=3 uid="uid://ddlfawdbjrfk0"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
+[ext_resource type="Script" uid="uid://cb7sqmf7ylfh2" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/Behaviors/projectile_anchor_behavior_double.tscn" id="2_behavior"]
 
 [resource]
@@ -10,13 +10,10 @@ display_name = "双发咻咻"
 short_name = "双发"
 max_hp = 70.0
 attack_damage = 10.0
-attack_cooldown = 0.16666667
+attack_cooldown = 0.3
 price = 2000
-attack_type = "单体"
 attack_radius = 210.0
-trigger_radius = 175.0
+trigger_radius = 210.0
 full_damage_radius = 36.0
-min_damage_ratio = 0.3
-default_animation = &"idle"
 tint = Color(0.74, 0.46, 1, 1)
 behavior_scene = ExtResource("2_behavior")

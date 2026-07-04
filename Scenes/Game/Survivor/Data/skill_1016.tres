@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SkillCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+
+[resource]
+script = ExtResource("1_skill_data")
+id = 1016
+name = "大赚一笔咯I"
+value = 15.0
+rarity = 1
+description = "获取的经验值和金币增加{0}%"
+group_id = 7
