@@ -1,12 +1,6 @@
-[gd_resource type="Resource" script_class="HouseData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="HouseData" format=3 uid="uid://ia5bhp2ebatv"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/house_data.gd" id="1_house_data"]
+[ext_resource type="Script" uid="uid://deo8ga1w1kld5" path="res://Scenes/Game/Survivor/Data/house_data.gd" id="1_house_data"]
 
 [resource]
 script = ExtResource("1_house_data")
-house_id = "house"
-display_name = "房子"
-max_hp = 50.0
-default_animation = &"idle"
-health_bar_offset = Vector2(0, 98)
-tint = Color(0.72, 0.38, 0.2, 1)

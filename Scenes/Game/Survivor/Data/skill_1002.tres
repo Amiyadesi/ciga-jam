@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="SkillCardData" format=3 uid="uid://dl46yajfcnbmj"]
 
 [ext_resource type="Script" uid="uid://nxuvr6gx84ch" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Texture2D" uid="uid://bxylde4gp831t" path="res://assets/sprites/survivor/skill/skill_1002.png" id="icon_1002"]
 
 [resource]
 script = ExtResource("1_skill_data")
@@ -11,3 +12,4 @@ rarity = 2
 prerequisite = 1001
 description = "玩家攻击冷却减少30%"
 group_id = 1
+icon_texture = ExtResource("icon_1002")

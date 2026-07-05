@@ -1,0 +1,23 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/survivor/bat/bat_0.png" id="1_bat0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/survivor/bat/bat_1.png" id="2_bat1"]
+
+[resource]
+animations = [{
+"frames": [],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_bat0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_bat1")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 8.0
+}]

@@ -1,13 +1,13 @@
 [gd_resource type="Resource" script_class="AnchorCatalog" format=3 uid="uid://s0fxpjdfdjdg"]
 
 [ext_resource type="Script" uid="uid://qafis6pgh5eh" path="res://Scenes/Game/Survivor/Data/anchor_catalog.gd" id="1_catalog"]
-[ext_resource type="Resource" uid="uid://bunpdhpjcdv1d" path="res://Scenes/Game/Survivor/Data/xiu_xiu_lv1.tres" id="2_x1"]
-[ext_resource type="Resource" uid="uid://cx04juo6nlkbx" path="res://Scenes/Game/Survivor/Data/xiu_xiu_lv2.tres" id="3_x2"]
-[ext_resource type="Resource" uid="uid://ccp0in7k43nrs" path="res://Scenes/Game/Survivor/Data/xiu_xiu_lv3.tres" id="4_x3"]
-[ext_resource type="Resource" uid="uid://ddlfawdbjrfk0" path="res://Scenes/Game/Survivor/Data/double_xiu_xiu_lv1.tres" id="5_d1"]
-[ext_resource type="Resource" uid="uid://bjs2nt3xlci2k" path="res://Scenes/Game/Survivor/Data/double_xiu_xiu_lv2.tres" id="6_d2"]
-[ext_resource type="Resource" uid="uid://cc8l3v1ukovyv" path="res://Scenes/Game/Survivor/Data/double_xiu_xiu_lv3.tres" id="7_d3"]
-[ext_resource type="Resource" uid="uid://ovs6fdptrtoy" path="res://Scenes/Game/Survivor/Data/mine_lv1.tres" id="8_m1"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/xiu_xiu_lv1.tres" id="2_x1"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/xiu_xiu_lv2.tres" id="3_x2"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/xiu_xiu_lv3.tres" id="4_x3"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/double_xiu_xiu_lv1.tres" id="5_d1"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/double_xiu_xiu_lv2.tres" id="6_d2"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/double_xiu_xiu_lv3.tres" id="7_d3"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/mine_lv1.tres" id="8_m1"]
 [ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/mine_lv2.tres" id="9_m2"]
 [ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/mine_lv3.tres" id="10_m3"]
 [ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/frost_circle_lv1.tres" id="11_f1"]
@@ -16,34 +16,48 @@
 [ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/mushroom_tower_lv1.tres" id="14_s1"]
 [ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/mushroom_tower_lv2.tres" id="15_s2"]
 [ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/mushroom_tower_lv3.tres" id="16_s3"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/frost_tower_lv1.tres" id="17_ft1"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/frost_tower_lv2.tres" id="18_ft2"]
+[ext_resource type="Resource" path="res://Scenes/Game/Survivor/Data/frost_tower_lv3.tres" id="19_ft3"]
 
 [resource]
 script = ExtResource("1_catalog")
 entries = {
 "double_xiu_xiu": {
+"description": "每次同时发射两枚魔法弹，攻击范围内距离最近的敌人。",
 "display_name": "双发咻咻",
 "levels": [ExtResource("5_d1"), ExtResource("6_d2"), ExtResource("7_d3")],
 "short_name": "双发"
 },
 "frost_circle": {
+"description": "持续降低范围内所有敌人的移动速度，不会成为敌人的攻击目标。",
 "display_name": "寒冰法阵",
 "levels": [ExtResource("11_f1"), ExtResource("12_f2"), ExtResource("13_f3")],
 "short_name": "寒冰"
 },
+"frost_tower": {
+"description": "发射可贯穿敌人的冰锥，对路径上的多个敌人造成伤害；每穿透一个敌人，伤害都会衰减，并对命中的敌人造成减速效果。",
+"display_name": "冰霜塔",
+"levels": [ExtResource("17_ft1"), ExtResource("18_ft2"), ExtResource("19_ft3")],
+"short_name": "冰霜"
+},
 "mine": {
+"description": "定期爆炸，对范围内所有敌人造成高额范围伤害，不会成为敌人的攻击目标。",
 "display_name": "地雷",
 "levels": [ExtResource("8_m1"), ExtResource("9_m2"), ExtResource("10_m3")],
 "short_name": "地雷"
 },
 "mushroom_tower": {
-"display_name": "蘑菇塔",
+"description": "发射火球攻击敌人，命中后发生爆炸，对周围敌人造成范围伤害。",
+"display_name": "火球塔",
 "levels": [ExtResource("14_s1"), ExtResource("15_s2"), ExtResource("16_s3")],
-"short_name": "蘑菇"
+"short_name": "火球"
 },
 "xiu_xiu": {
+"description": "自动发射魔法弹，攻击范围内距离最近的敌人。",
 "display_name": "咻咻",
 "levels": [ExtResource("2_x1"), ExtResource("3_x2"), ExtResource("4_x3")],
 "short_name": "咻咻"
 }
 }
-hotbar_order = PackedStringArray("xiu_xiu", "double_xiu_xiu", "mine", "frost_circle", "mushroom_tower")
+hotbar_order = PackedStringArray("xiu_xiu", "double_xiu_xiu", "mine", "frost_circle", "mushroom_tower", "frost_tower")

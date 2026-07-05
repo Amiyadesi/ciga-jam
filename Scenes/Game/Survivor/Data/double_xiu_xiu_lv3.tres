@@ -1,19 +1,23 @@
-[gd_resource type="Resource" script_class="AnchorData" format=3 uid="uid://cc8l3v1ukovyv"]
+[gd_resource type="Resource" script_class="AnchorData" format=3 uid="uid://dbsqg5n8p1e0o"]
 
 [ext_resource type="Script" uid="uid://cb7sqmf7ylfh2" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/Behaviors/projectile_anchor_behavior_double.tscn" id="2_behavior"]
+[ext_resource type="Texture2D" uid="uid://8vh4mvagmi2o" path="res://assets/sprites/survivor/anchors/double_xiu_xiu.png" id="2_jtlr7"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/survivor/anchors/double_xiu_xiu_frames.tres" id="4_153t0"]
 
 [resource]
 script = ExtResource("1_anchor_data")
 anchor_id = "double_xiu_xiu"
 display_name = "双发咻咻"
 short_name = "双发"
-max_hp = 110.0
-attack_damage = 15.0
+max_hp = 1100.0
+attack_damage = 25.0
 attack_cooldown = 0.2
-price = 6400
+price = 4800
 attack_radius = 250.0
 trigger_radius = 250.0
 full_damage_radius = 36.0
-tint = Color(0.74, 0.46, 1, 1)
+icon_texture = ExtResource("2_jtlr7")
+sprite_frames = ExtResource("4_153t0")
+tint = Color(0.48, 0.64, 1, 1)
 behavior_scene = ExtResource("2_behavior")

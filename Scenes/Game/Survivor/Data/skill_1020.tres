@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SkillCardData" format=3 uid="uid://cqd1e3uqqddrh"]
+
+[ext_resource type="Script" uid="uid://nxuvr6gx84ch" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Texture2D" uid="uid://bkyn0pc40g7ns" path="res://assets/sprites/survivor/skill/skill_1020.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_skill_data")
+id = 1020
+name = "自动修复"
+value = 0.1
+value2 = 30.0
+rarity = 2
+description = "每{1}秒，房子和可受伤锚点恢复最大耐久{0}"
+group_id = 9
+icon_texture = ExtResource("2_icon")

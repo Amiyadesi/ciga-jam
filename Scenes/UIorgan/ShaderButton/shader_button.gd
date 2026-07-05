@@ -105,7 +105,7 @@ func reset_visuals() -> void:
 # ─────────────────────────────────────────────
 
 func _on_pressed() -> void:
-	$PressAudio.play()
+	_play_press_sound()
 	_center_click = (get_global_transform().affine_inverse() * get_global_mouse_position()) / size
 	create_tween().tween_property(material, "shader_parameter/time1", 1.0, 0.5).from(0.0)
 
@@ -113,7 +113,7 @@ func _on_pressed() -> void:
 func _on_mouse_entered() -> void:
 	if disabled:
 		return
-	$SelectAudio.play()
+	_play_select_sound()
 	_is_mouse_over = true
 	if _exit_tween:
 		_exit_tween.kill()
@@ -149,3 +149,33 @@ func _center_label() -> void:
 func _on_label_resized() -> void:
 	if text_label != null and size < text_label.size:
 		size = text_label.size + Vector2(h_expend, v_expend)
+
+
+# 通过全局音频路由播放按钮按下音，确保设置里的音量滑杆生效。
+func _play_press_sound() -> void:
+	var game_audio: Node = _get_game_audio()
+	if game_audio != null and game_audio.has_method("play_ui_button_press"):
+		game_audio.call("play_ui_button_press", self)
+		return
+	var press_audio: AudioStreamPlayer = get_node_or_null("PressAudio") as AudioStreamPlayer
+	if press_audio != null and press_audio.stream != null:
+		press_audio.bus = "UI"
+		press_audio.volume_db = -12.0
+		press_audio.play()
+
+
+# 悬停音效目前只在场景配置了资源时播放。
+func _play_select_sound() -> void:
+	var select_audio: AudioStreamPlayer = get_node_or_null("SelectAudio") as AudioStreamPlayer
+	if select_audio == null or select_audio.stream == null:
+		return
+	select_audio.bus = "UI"
+	select_audio.volume_db = -18.0
+	select_audio.play()
+
+
+# 查找项目全局音频路由。
+func _get_game_audio() -> Node:
+	if get_tree() == null or get_tree().root == null:
+		return null
+	return get_tree().root.get_node_or_null("GameAudio")

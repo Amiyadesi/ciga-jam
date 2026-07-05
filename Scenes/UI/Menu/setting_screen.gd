@@ -77,6 +77,7 @@ func _ready() -> void:
 	_make_runtime_styles()
 	_register_audio_rows()
 	_connect_signals()
+	_configure_button_audio()
 	_sync_menu_only_controls()
 	refresh_from_settings()
 	_set_tab(0)
@@ -162,6 +163,9 @@ func _on_audio_slider_changed(value:float, key:String, value_label:Label) -> voi
 		return
 	if SettingsModule.instance != null:
 		SettingsModule.instance.set_value(key, value)
+	var game_audio: Node = _get_game_audio()
+	if game_audio != null and game_audio.has_method("refresh_runtime_volumes"):
+		game_audio.call("refresh_runtime_volumes")
 
 
 func _on_reset_audio_pressed() -> void:
@@ -169,6 +173,9 @@ func _on_reset_audio_pressed() -> void:
 		return
 	for key in AUDIO_KEYS:
 		SettingsModule.instance.set_value(key, AUDIO_DEFAULTS[key])
+	var game_audio: Node = _get_game_audio()
+	if game_audio != null and game_audio.has_method("refresh_runtime_volumes"):
+		game_audio.call("refresh_runtime_volumes")
 	refresh_from_settings()
 	_set_hint("音频设置已恢复默认。")
 
@@ -261,6 +268,28 @@ func _get_save_system() -> Node:
 	if get_tree() == null or get_tree().root == null:
 		return null
 	return get_tree().root.get_node_or_null("SaveSystem")
+
+
+# 给设置界面所有按钮接入统一 UI 音效。
+func _configure_button_audio() -> void:
+	var game_audio: Node = _get_game_audio()
+	if game_audio == null:
+		return
+	if game_audio.has_method("setup_ingame_shader_button"):
+		game_audio.call("setup_ingame_shader_button", return_button)
+		game_audio.call("setup_ingame_shader_button", thanks_button)
+		game_audio.call("setup_ingame_shader_button", reset_audio_button)
+	if game_audio.has_method("setup_plain_button"):
+		game_audio.call("setup_plain_button", return_button, "cancel")
+		game_audio.call("setup_plain_button", audio_tab)
+		game_audio.call("setup_plain_button", controls_tab)
+
+
+# 查找项目全局音频路由。
+func _get_game_audio() -> Node:
+	if get_tree() == null or get_tree().root == null:
+		return null
+	return get_tree().root.get_node_or_null("GameAudio")
 
 
 func _make_runtime_styles() -> void:

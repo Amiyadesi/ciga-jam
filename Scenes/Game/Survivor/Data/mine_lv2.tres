@@ -1,7 +1,9 @@
-[gd_resource type="Resource" script_class="AnchorData" format=3 uid="uid://6m2vm2pgt57b"]
+[gd_resource type="Resource" script_class="AnchorData" format=3 uid="uid://b6f28fiwrfrd7"]
 
 [ext_resource type="Script" uid="uid://cb7sqmf7ylfh2" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/Behaviors/mine_anchor_behavior.tscn" id="2_behavior"]
+[ext_resource type="Texture2D" uid="uid://cacs7s5ak284k" path="res://assets/sprites/survivor/anchors/mine.png" id="2_j8yup"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/survivor/anchors/mine_frames.tres" id="4_7a3np"]
 
 [resource]
 script = ExtResource("1_anchor_data")
@@ -10,12 +12,14 @@ display_name = "地雷"
 short_name = "地雷"
 max_hp = -1.0
 attack_damage = 1200.0
-attack_cooldown = 16.0
+attack_cooldown = 21.0
 price = 2500
 attack_type = "范围"
 attack_radius = 240.0
-trigger_radius = 144.0
+trigger_radius = 240.0
 full_damage_radius = 52.0
+icon_texture = ExtResource("2_j8yup")
+sprite_frames = ExtResource("4_7a3np")
 tint = Color(1, 0.53, 0.22, 1)
 behavior_scene = ExtResource("2_behavior")
 behavior_params = {

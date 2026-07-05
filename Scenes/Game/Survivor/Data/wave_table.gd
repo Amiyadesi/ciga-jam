@@ -1,6 +1,6 @@
 class_name WaveTable
 extends Resource
-## Lightweight wave schedule resource for the 15-wave survivor run.
+## Lightweight wave schedule resource for the authored survivor slice.
 
 @export var waves: Array[Dictionary] = []
 

@@ -61,14 +61,17 @@ func _on_mouse_hovered(hovered:bool) -> void:
 func _play_press_sound() -> void:
 	if press_sound_kind == "none":
 		return
-	if button.get_node_or_null("PressAudio") != null:
+	if button is ShaderButton:
 		return
 	var game_audio: Node = _get_game_audio()
 	if game_audio == null:
 		return
 	match press_sound_kind:
 		"confirm":
-			game_audio.call("play_ui_confirm_ingame")
+			if game_audio.has_method("play_ui_button_press"):
+				game_audio.call("play_ui_button_press", button)
+			else:
+				game_audio.call("play_ui_confirm_ingame")
 		"cancel":
 			game_audio.call("play_ui_cancel")
 		_:

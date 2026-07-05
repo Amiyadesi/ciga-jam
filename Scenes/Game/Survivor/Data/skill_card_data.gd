@@ -10,6 +10,7 @@ extends Resource
 @export var prerequisite: int = 0
 @export_multiline var description: String = ""
 @export var group_id: int = 0
+@export var icon_texture: Texture2D
 
 
 # Returns a UI-ready description with spreadsheet placeholders resolved.
@@ -29,6 +30,7 @@ func to_dictionary() -> Dictionary:
 		"description": description,
 		"display_description": build_description(),
 		"group_id": group_id,
+		"icon_texture": icon_texture,
 	}
 
 

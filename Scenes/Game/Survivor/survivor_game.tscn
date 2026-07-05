@@ -8,13 +8,68 @@
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/failure_screen.tscn" id="5_failure"]
 [ext_resource type="PackedScene" uid="uid://bfo4brn0sxrti" path="res://Scenes/Game/Survivor/hotbar.tscn" id="6_hotbar"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/anchor_detail_panel.tscn" id="7_detail"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/house_detail_panel.tscn" id="8_house_detail"]
 [ext_resource type="PackedScene" uid="uid://2bk0jtcsnhjd" path="res://Scenes/Game/Survivor/level_up_panel.tscn" id="8_levelup"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/anchor_recycle_dialog.tscn" id="10_recycle"]
 [ext_resource type="Script" uid="uid://i3xgym8bhl33" path="res://Scenes/UIorgan/ButtonEffectModule/button_effect_module.gd" id="11_button_effect"]
 [ext_resource type="Shader" uid="uid://gmnkkpbsnfgi" path="res://Scenes/Game/Survivor/low_health_overlay.gdshader" id="12_low_hp_shader"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/controls_help_panel.tscn" id="13_controls_help"]
+[ext_resource type="Texture2D" uid="uid://c42727t1tc0lq" path="res://assets/sprites/survivor/map/forest_map.png" id="14_map"]
+[ext_resource type="Texture2D" uid="uid://chanef45nt0q6" path="res://assets/sprites/survivor/spawn/enemy_spawn.png" id="15_enemy_spawn"]
+[ext_resource type="Texture2D" uid="uid://dmosknspqvkm4" path="res://assets/sprites/survivor/spawn/home_spawn.png" id="16_home_spawn"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boundary"]
 size = Vector2(128, 128)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mi1ym"]
+size = Vector2(2150.0522, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4mvqw"]
+size = Vector2(2423.3801, 31.314941)
+
+[sub_resource type="Gradient" id="Gradient_preview_range"]
+colors = PackedColorArray(1, 1, 1, 0.36, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_preview_range"]
+gradient = SubResource("Gradient_preview_range")
+width = 512
+height = 512
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_foreground_particle_texture"]
+colors = PackedColorArray(1, 1, 1, 0.85, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_foreground_particle"]
+gradient = SubResource("Gradient_foreground_particle_texture")
+width = 48
+height = 48
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_foreground_particles"]
+offsets = PackedFloat32Array(0, 0, 1)
+colors = PackedColorArray(0.62, 0.86, 1, 0, 1, 0.9, 0.56, 0, 0.86, 0.96, 1, 0.42)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_foreground_particles"]
+gradient = SubResource("Gradient_foreground_particles")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_foreground_particles"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(1100, 620, 1)
+direction = Vector3(0, -1, 0)
+spread = 180.0
+initial_velocity_min = 4.0
+initial_velocity_max = 16.0
+gravity = Vector3(0, -3, 0)
+damping_min = 0.2
+damping_max = 1.1
+scale_min = 0.18
+scale_max = 0.72
+color_ramp = SubResource("GradientTexture1D_foreground_particles")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_orb"]
 shader = ExtResource("3_lauwq")
@@ -108,12 +163,20 @@ corner_radius_bottom_left = 8
 [node name="SurvivorGame" type="Node2D" unique_id=491727456]
 script = ExtResource("1_game")
 
+[node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=2075105183]
+color = Color(0.31347755, 0.3524531, 0.4573484, 1)
+
 [node name="World" type="Node2D" parent="." unique_id=2127470349]
 
 [node name="Ground" type="Polygon2D" parent="World" unique_id=622170149]
-z_index = -20
+z_index = -40
 color = Color(0.17, 0.33, 0.19, 1)
 polygon = PackedVector2Array(0, 0, 5760, 0, 5760, 3240, 0, 3240)
+
+[node name="MapBackground" type="Sprite2D" parent="World" unique_id=1611191964]
+z_index = -35
+position = Vector2(2880, 1620)
+texture = ExtResource("14_map")
 
 [node name="Roads" type="Node2D" parent="World" unique_id=319830469]
 z_index = -10
@@ -163,7 +226,89 @@ collision_mask = 0
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/Boundaries/EastWall" unique_id=1631779309]
 shape = SubResource("RectangleShape2D_boundary")
 
+[node name="RoadCorridorWalls" type="Node2D" parent="World/Boundaries" unique_id=1286056686]
+
 [node name="Obstacles" type="Node2D" parent="World" unique_id=659139688]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="World/Obstacles" unique_id=1186108931]
+position = Vector2(80, 1915)
+rotation = -0.02617994
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Obstacles/StaticBody2D" unique_id=513167273]
+position = Vector2(997.97375, 0.00024414063)
+shape = SubResource("RectangleShape2D_mi1ym")
+
+[node name="StaticBody2D2" type="StaticBody2D" parent="World/Obstacles" unique_id=13905612]
+position = Vector2(-28.99997, 1261)
+rotation = -0.16929694
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Obstacles/StaticBody2D2" unique_id=1630100699]
+position = Vector2(1031.5, 0)
+shape = SubResource("RectangleShape2D_mi1ym")
+
+[node name="StaticBody2D3" type="StaticBody2D" parent="World/Obstacles" unique_id=1573537056]
+position = Vector2(1985, 900.99994)
+rotation = -0.4834562
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Obstacles/StaticBody2D3" unique_id=1247852643]
+position = Vector2(1031.5, 0)
+shape = SubResource("RectangleShape2D_mi1ym")
+
+[node name="StaticBody2D4" type="StaticBody2D" parent="World/Obstacles" unique_id=355297267]
+position = Vector2(3236, 254.00006)
+rotation = 0.26529005
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Obstacles/StaticBody2D4" unique_id=581022736]
+position = Vector2(1031.5, 0)
+shape = SubResource("RectangleShape2D_mi1ym")
+
+[node name="StaticBody2D5" type="StaticBody2D" parent="World/Obstacles" unique_id=1282672664]
+position = Vector2(4277, 545)
+rotation = 0.37350047
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Obstacles/StaticBody2D5" unique_id=539193956]
+position = Vector2(1031.5, 0)
+shape = SubResource("RectangleShape2D_mi1ym")
+
+[node name="StaticBody2D6" type="StaticBody2D" parent="World/Obstacles" unique_id=1472609514]
+position = Vector2(3864.0005, 1839.0001)
+rotation = 0.37350047
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Obstacles/StaticBody2D6" unique_id=973567851]
+position = Vector2(861.31055, 5.6573486)
+shape = SubResource("RectangleShape2D_4mvqw")
+
+[node name="StaticBody2D7" type="StaticBody2D" parent="World/Obstacles" unique_id=345504024]
+position = Vector2(3531.9998, 1720)
+rotation = 1.1588986
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Obstacles/StaticBody2D7" unique_id=1712006591]
+position = Vector2(1031.5, 0)
+shape = SubResource("RectangleShape2D_mi1ym")
+
+[node name="StaticBody2D8" type="StaticBody2D" parent="World/Obstacles" unique_id=203662660]
+position = Vector2(2118.9998, 1865.9998)
+rotation = 1.1588986
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Obstacles/StaticBody2D8" unique_id=219588173]
+position = Vector2(1031.5, 0)
+shape = SubResource("RectangleShape2D_mi1ym")
 
 [node name="Anchors" type="Node2D" parent="World" unique_id=1261863925]
 
@@ -177,14 +322,56 @@ shape = SubResource("RectangleShape2D_boundary")
 visible = false
 z_index = 20
 
+[node name="PreviewRange" type="Sprite2D" parent="World/PlacementPreview" unique_id=1088120105]
+self_modulate = Color(0.42, 0.75, 1, 0.24)
+texture = SubResource("GradientTexture2D_preview_range")
+
 [node name="PreviewVisual" type="Polygon2D" parent="World/PlacementPreview" unique_id=597326615]
 color = Color(0.42, 0.75, 1, 0.4)
 polygon = PackedVector2Array(0, -34, 28, -12, 24, 24, 0, 38, -24, 24, -28, -12)
+
+[node name="PreviewSprite" type="AnimatedSprite2D" parent="World/PlacementPreview" unique_id=876210551]
+visible = false
+modulate = Color(1, 1, 1, 0.4)
+
+[node name="SpawnMarkers" type="Node2D" parent="World" unique_id=589619142]
+z_index = -5
+
+[node name="HomeSpawn" type="Sprite2D" parent="World/SpawnMarkers" unique_id=1273000337]
+position = Vector2(31.999878, 1594)
+scale = Vector2(0.22, 0.75)
+texture = ExtResource("16_home_spawn")
+
+[node name="RightEnemySpawn" type="Sprite2D" parent="World/SpawnMarkers" unique_id=646322751]
+position = Vector2(5732, 1818)
+scale = Vector2(0.18, 0.89)
+texture = ExtResource("15_enemy_spawn")
+
+[node name="BottomEnemySpawn" type="Sprite2D" parent="World/SpawnMarkers" unique_id=784545547]
+position = Vector2(3499.9998, 3218.0005)
+rotation = 1.5707964
+scale = Vector2(0.18, 0.715)
+texture = ExtResource("15_enemy_spawn")
+
+[node name="MidPoint" type="Node2D" parent="World" unique_id=1052224426]
+position = Vector2(2920, 1258)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1505688894]
 zoom = Vector2(0.82, 0.82)
 position_smoothing_enabled = true
 position_smoothing_speed = 7.0
+
+[node name="ForegroundVFX" type="CanvasLayer" parent="." unique_id=771542028]
+layer = 8
+
+[node name="LightMotes" type="GPUParticles2D" parent="ForegroundVFX" unique_id=1035712867]
+position = Vector2(960, 540)
+amount = 86
+texture = SubResource("GradientTexture2D_foreground_particle")
+lifetime = 7.0
+preprocess = 7.0
+visibility_rect = Rect2(-1200, -700, 2400, 1400)
+process_material = SubResource("ParticleProcessMaterial_foreground_particles")
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1910305484]
 layer = 10
@@ -304,17 +491,6 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_hud")
 text = "金币 0"
 vertical_alignment = 1
 
-[node name="TopBar" type="HBoxContainer" parent="HUD/Root" unique_id=1952956121]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_left = 24.0
-offset_top = 20.0
-offset_right = -24.0
-offset_bottom = 172.0
-grow_horizontal = 2
-theme_override_constants/separation = 12
-
 [node name="LevelUpButton" type="Button" parent="HUD/Root" unique_id=1914704340]
 visible = false
 custom_minimum_size = Vector2(144, 58)
@@ -337,12 +513,11 @@ script = ExtResource("11_button_effect")
 layout_mode = 1
 
 [node name="SkillSummaryPanel" type="PanelContainer" parent="HUD/Root" unique_id=1751459821]
-visible = false
 layout_mode = 1
 offset_left = 24.0
-offset_top = 88.0
+offset_top = 300.0
 offset_right = 324.0
-offset_bottom = 228.0
+offset_bottom = 440.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_skill_panel")
 
 [node name="Margin" type="MarginContainer" parent="HUD/Root/SkillSummaryPanel" unique_id=686363541]
@@ -370,6 +545,12 @@ text = "暂无"
 autowrap_mode = 3
 
 [node name="AnchorDetailPanel" parent="HUD/Root" unique_id=167237236 instance=ExtResource("7_detail")]
+visible = false
+layout_mode = 1
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HouseDetailPanel" parent="HUD/Root" unique_id=957381199 instance=ExtResource("8_house_detail")]
 visible = false
 layout_mode = 1
 grow_horizontal = 2
@@ -436,6 +617,9 @@ vertical_alignment = 1
 visible = false
 
 [node name="FailureScreen" parent="HUD" unique_id=1015607612 instance=ExtResource("5_failure")]
+visible = false
+
+[node name="ControlsHelpPanel" parent="HUD" unique_id=489380811 instance=ExtResource("13_controls_help")]
 visible = false
 
 [node name="PauseScreen" parent="HUD" unique_id=1183853779 instance=ExtResource("2_pause")]

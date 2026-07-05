@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="SkillCardData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="SkillCardData" format=3 uid="uid://dlb81lk05mq6m"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Script" uid="uid://nxuvr6gx84ch" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Texture2D" uid="uid://cqoq8rqisx88h" path="res://assets/sprites/survivor/skill/skill_1012.png" id="icon_1012"]
 
 [resource]
 script = ExtResource("1_skill_data")
@@ -11,3 +12,4 @@ rarity = 3
 prerequisite = 1011
 description = "可放置的魔法锚点数量上限增加至{0}"
 group_id = 5
+icon_texture = ExtResource("icon_1012")

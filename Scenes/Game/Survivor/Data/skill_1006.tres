@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="SkillCardData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="SkillCardData" format=3 uid="uid://71j55wx6y8e4"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Script" uid="uid://nxuvr6gx84ch" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Texture2D" uid="uid://b0uilug5pvj56" path="res://assets/sprites/survivor/skill/skill_1006.png" id="icon_1006"]
 
 [resource]
 script = ExtResource("1_skill_data")
@@ -11,3 +12,4 @@ rarity = 3
 prerequisite = 1005
 description = "玩家攻击力增加50%"
 group_id = 2
+icon_texture = ExtResource("icon_1006")

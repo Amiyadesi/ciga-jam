@@ -6,6 +6,7 @@ const SkillDb = preload("res://Scenes/Game/Survivor/skill_database.gd")
 
 @onready var rarity_label: Label = get_node_or_null("CardMargin/CardVBox/RarityLabel") as Label
 @onready var title_label: Label = get_node_or_null("CardMargin/CardVBox/TitleLabel") as Label
+@onready var icon_rect: TextureRect = get_node_or_null("CardMargin/CardVBox/IconPanel/IconRect") as TextureRect
 @onready var effect_label: Label = get_node_or_null("CardMargin/CardVBox/EffectLabel") as Label
 
 
@@ -20,6 +21,9 @@ func set_skill_data(skill: Dictionary) -> void:
 		rarity_label.text = _rarity_text(rarity)
 	if title_label != null:
 		title_label.text = str(skill.get("name", "技能"))
+	if icon_rect != null:
+		icon_rect.texture = skill.get("icon_texture") as Texture2D
+		icon_rect.visible = icon_rect.texture != null
 	if effect_label != null:
 		effect_label.text = effect_text
 

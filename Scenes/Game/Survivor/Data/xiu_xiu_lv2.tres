@@ -1,18 +1,23 @@
-[gd_resource type="Resource" script_class="AnchorData" format=3 uid="uid://cx04juo6nlkbx"]
+[gd_resource type="Resource" script_class="AnchorData" format=3 uid="uid://c2sntkyf8p3br"]
 
 [ext_resource type="Script" uid="uid://cb7sqmf7ylfh2" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/Behaviors/projectile_anchor_behavior.tscn" id="2_behavior"]
+[ext_resource type="Texture2D" uid="uid://d0jrsp314d5fm" path="res://assets/sprites/survivor/anchors/xiu_xiu.png" id="2_tjqxc"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/survivor/anchors/xiu_xiu_frames.tres" id="4_qddfy"]
 
 [resource]
 script = ExtResource("1_anchor_data")
 anchor_id = "xiu_xiu"
 display_name = "咻咻"
 short_name = "咻咻"
-max_hp = 65.0
-attack_damage = 12.0
+max_hp = 900.0
+attack_damage = 20.0
 attack_cooldown = 0.25
-price = 2100
+price = 1600
 attack_radius = 220.0
 trigger_radius = 220.0
 full_damage_radius = 36.0
+icon_texture = ExtResource("2_tjqxc")
+sprite_frames = ExtResource("4_qddfy")
+tint = Color(0.36, 0.86, 0.82, 1)
 behavior_scene = ExtResource("2_behavior")

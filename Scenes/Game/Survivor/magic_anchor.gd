@@ -6,6 +6,8 @@ signal open_detail_requested(anchor: Node)
 signal upgrade_requested(anchor: Node)
 
 const AnchorDb = preload("res://Scenes/Game/Survivor/anchor_database.gd")
+const SOLID_ANCHOR_LAYER: int = 4
+const INTANGIBLE_PICK_LAYER: int = 16
 
 @onready var visual: Polygon2D = $VisualRoot/Visual
 @onready var core: Polygon2D = $VisualRoot/Core
@@ -17,6 +19,9 @@ const AnchorDb = preload("res://Scenes/Game/Survivor/anchor_database.gd")
 @onready var hp_label: Label = $HpLabel
 @onready var upgrade_button: Button = $UpgradeButton
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
+@onready var aura_light: PointLight2D = $AuraLight
+
+@export var damage_invulnerability_duration: float = 0.5
 
 var anchor_id: String = ""
 var level: int = 1
@@ -41,11 +46,17 @@ var _behavior: Node
 var _runtime_modifiers: Dictionary = {}
 var _base_attack_damage: float = 1.0
 var _range_targets: Dictionary = {}
+var _visual_base_position: Vector2 = Vector2.ZERO
+var _float_phase: float = 0.0
+var _base_sprite_modulate: Color = Color.WHITE
+var _damage_cooldown_timer: float = 0.0
+var _base_attack_cooldown: float = 1.0
 
 
 # 连接交互按钮，并注册锚点分组。
 func _ready() -> void:
 	add_to_group("anchors")
+	_visual_base_position = $VisualRoot.position
 	upgrade_button.pressed.connect(func() -> void: upgrade_requested.emit(self))
 	upgrade_button.visible = false
 	if range_area != null:
@@ -58,6 +69,8 @@ func _ready() -> void:
 
 # 每帧清理无效目标，并根据当前范围内敌人更新提示圈显隐。
 func _physics_process(_delta: float) -> void:
+	_damage_cooldown_timer = maxf(0.0, _damage_cooldown_timer - _delta)
+	_update_visual_float(_delta)
 	_prune_range_targets()
 	_refresh_range_indicator()
 
@@ -82,6 +95,7 @@ func setup(new_anchor_id: String, new_level: int, stats: Dictionary) -> void:
 	current_hp = max_hp
 	_base_attack_damage = float(stats.get("attack_damage", 1.0))
 	attack_damage = _base_attack_damage
+	_base_attack_cooldown = float(stats.get("attack_cooldown", 1.0))
 	attack_cooldown = float(stats.get("attack_cooldown", 1.0))
 	attack_radius = float(stats.get("attack_radius", 120.0))
 	attack_type = str(stats.get("attack_type", "单体"))
@@ -95,7 +109,9 @@ func setup(new_anchor_id: String, new_level: int, stats: Dictionary) -> void:
 		visual.color = tint
 	if core != null:
 		core.color = Color(0.08, 0.08, 0.14, 1.0)
+	_apply_aura_light(tint)
 	_apply_visual_resource(stats)
+	_apply_collision_mode()
 	_apply_runtime_modifiers()
 	_apply_range_shape()
 	_configure_range_indicator(tint)
@@ -109,14 +125,16 @@ func setup(new_anchor_id: String, new_level: int, stats: Dictionary) -> void:
 
 
 # 承受敌人伤害，生命归零后移除锚点。
-func take_damage(amount: float) -> void:
-	if amount <= 0.0 or not _is_alive or max_hp <= 0.0:
+func take_damage(amount: float, _source_position: Vector2 = Vector2.INF) -> void:
+	if amount <= 0.0 or not _is_alive or max_hp <= 0.0 or _damage_cooldown_timer > 0.0:
 		return
+	_damage_cooldown_timer = damage_invulnerability_duration
 	current_hp = maxf(0.0, current_hp - amount)
 	_flash_damage()
 	_refresh_labels()
-	if is_targetable() and is_zero_approx(current_hp):
+	if current_hp <= 0.0:
 		_is_alive = false
+		_apply_collision_mode()
 		died.emit(self)
 		queue_free()
 
@@ -129,6 +147,22 @@ func upgrade() -> bool:
 		return false
 	setup(anchor_id, next_level, stats)
 	return true
+
+
+## 修复固定耐久值，不受受击冷却影响。
+func repair(amount: float) -> bool:
+	if amount <= 0.0 or not _is_alive or max_hp <= 0.0 or current_hp >= max_hp:
+		return false
+	current_hp = minf(max_hp, current_hp + amount)
+	_refresh_labels()
+	return true
+
+
+## 按最大耐久百分比修复，供局内自动修复技能调用。
+func repair_percent(percent: float) -> bool:
+	if percent <= 0.0 or max_hp <= 0.0:
+		return false
+	return repair(max_hp * percent)
 
 
 # 更新附近玩家可见的升级按钮和价格提示。
@@ -180,6 +214,42 @@ func is_targetable() -> bool:
 	return _is_alive and max_hp > 0.0 and current_hp > 0.0
 
 
+# 返回锚点伤害命中时应施加的状态效果数据。
+func get_on_hit_status_effects() -> Array[Dictionary]:
+	var effects: Array[Dictionary] = []
+	var slow_percent: float = clampf(float(behavior_params.get("hit_slow_percent", _runtime_modifiers.get("anchor_hit_slow_percent", 0.0))), 0.0, 0.95)
+	if slow_percent > 0.0:
+		effects.append({
+			"type": "slow",
+			"multiplier": 1.0 - slow_percent,
+			"duration": maxf(0.1, float(behavior_params.get("hit_slow_duration", _runtime_modifiers.get("anchor_hit_slow_duration", 1.0)))),
+		})
+	return effects
+
+
+# 兼容旧行为名，范围伤害行为通过数据接口应用效果。
+func apply_on_hit_effects(target: Node) -> void:
+	if target == null:
+		return
+	for effect in get_on_hit_status_effects():
+		match str(effect.get("type", "")):
+			"slow":
+				if target.has_method("apply_slow"):
+					target.call(
+						"apply_slow",
+						clampf(float(effect.get("multiplier", 1.0)), 0.05, 1.0),
+						maxf(0.0, float(effect.get("duration", 0.0)))
+					)
+			_:
+				pass
+
+
+# 根据生命值类型切换物理层，血量小于等于 0 的功能塔不阻挡敌人。
+func _apply_collision_mode() -> void:
+	collision_layer = SOLID_ANCHOR_LAYER if is_targetable() else INTANGIBLE_PICK_LAYER
+	collision_mask = 0
+
+
 # 查找攻击范围内最近的敌人。
 func find_nearest_enemy() -> Node2D:
 	var best: Node2D = null
@@ -213,17 +283,6 @@ func get_current_price() -> int:
 	return int(resource_data.get("price")) if resource_data != null else 0
 
 
-# 对命中的敌人施加锚点附带的额外效果。
-func apply_on_hit_effects(target: Node) -> void:
-	if target == null or not target.has_method("apply_slow"):
-		return
-	var slow_percent: float = float(_runtime_modifiers.get("anchor_hit_slow_percent", 0.0))
-	if slow_percent <= 0.0:
-		return
-	var duration: float = maxf(0.1, float(_runtime_modifiers.get("anchor_hit_slow_duration", 1.0)))
-	target.call("apply_slow", 1.0 - slow_percent, duration)
-
-
 # 让索敌判定半径和当前攻击范围保持一致。
 func _apply_range_shape() -> void:
 	if range_shape == null:
@@ -252,7 +311,7 @@ func _flash_damage() -> void:
 	if animated_sprite != null and animated_sprite.visible:
 		animated_sprite.modulate = Color.WHITE
 		tween.tween_property(animated_sprite, "modulate", Color.WHITE, 0.01)
-		tween.tween_property(animated_sprite, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.12)
+		tween.tween_property(animated_sprite, "modulate", _base_sprite_modulate, 0.12)
 		return
 	if visual != null:
 		visual.color = Color.WHITE
@@ -267,6 +326,10 @@ func _apply_visual_resource(stats: Dictionary) -> void:
 	animated_sprite.sprite_frames = frames
 	var has_frames: bool = frames != null and frames.get_animation_names().size() > 0
 	animated_sprite.visible = has_frames
+	_base_sprite_modulate = stats.get("tint", Color.WHITE) as Color
+	animated_sprite.modulate = _base_sprite_modulate
+	animated_sprite.scale = _get_sprite_scale_for_anchor(anchor_id)
+	animated_sprite.position = _get_sprite_offset_for_anchor(anchor_id)
 	if visual != null:
 		visual.visible = not has_frames
 	if core != null:
@@ -289,6 +352,7 @@ func _setup_behavior(behavior_scene: PackedScene) -> void:
 # 在 setup 或升级后重新套用共享修正。
 func _apply_runtime_modifiers() -> void:
 	attack_damage = _base_attack_damage * float(_runtime_modifiers.get("anchor_attack_multiplier", 1.0))
+	attack_cooldown = maxf(0.01, _base_attack_cooldown * float(_runtime_modifiers.get("anchor_attack_cooldown_multiplier", 1.0)))
 
 
 # 记录进入锚点攻击范围的敌人，用于范围圈显隐。
@@ -334,6 +398,15 @@ func _configure_range_indicator(tint: Color) -> void:
 	attack_range_indicator.call("set_persistent_visible", _should_persist_range_indicator())
 
 
+# 按锚点颜色刷新局部光，让不同塔的识别色更清楚。
+func _apply_aura_light(tint: Color) -> void:
+	if aura_light == null:
+		return
+	aura_light.color = tint.lightened(0.18)
+	aura_light.energy = 0.0 if max_hp == 0.0 else 0.82
+	aura_light.texture_scale = 2.15 if attack_radius >= 260.0 else 1.75
+
+
 # 判断当前锚点是否应该常驻显示攻击范围。
 func _should_persist_range_indicator() -> bool:
 	if bool(behavior_params.get("persistent_range_indicator", false)):
@@ -344,3 +417,46 @@ func _should_persist_range_indicator() -> bool:
 # 判断进入范围区的物体是不是敌人。
 func _is_enemy_range_target(body: Node) -> bool:
 	return body != null and body.is_in_group("enemies")
+
+
+# 已放置锚点保持轻微上下浮动，后续可替换为正式动画。
+func _update_visual_float(delta: float) -> void:
+	var visual_root: Node2D = $VisualRoot
+	if visual_root == null:
+		return
+	_float_phase += delta * 2.4
+	visual_root.position = _visual_base_position + Vector2(0.0, sin(_float_phase) * 4.0)
+
+
+# 根据不同塔贴图尺寸选择接近碰撞体的显示大小。
+func _get_sprite_scale_for_anchor(id: String) -> Vector2:
+	match id:
+		"xiu_xiu", "double_xiu_xiu":
+			return Vector2(0.105, 0.105)
+		"mine":
+			return Vector2(0.15, 0.15)
+		"frost_circle":
+			return Vector2(0.18, 0.18)
+		"mushroom_tower":
+			return Vector2(0.19, 0.19)
+		"frost_tower":
+			return Vector2(0.15, 0.15)
+		_:
+			return Vector2(0.16, 0.16)
+
+
+# 针对贴图重心微调显示偏移，碰撞体仍保留原位。
+func _get_sprite_offset_for_anchor(id: String) -> Vector2:
+	match id:
+		"xiu_xiu", "double_xiu_xiu":
+			return Vector2(0.0, -3.0)
+		"mine":
+			return Vector2(0.0, -2.0)
+		"frost_circle":
+			return Vector2.ZERO
+		"mushroom_tower":
+			return Vector2(0.0, -8.0)
+		"frost_tower":
+			return Vector2.ZERO
+		_:
+			return Vector2.ZERO

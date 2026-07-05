@@ -1,0 +1,47 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/survivor/slime/slime_00.png" id="1_0vncn"]
+[ext_resource type="Texture2D" path="res://assets/sprites/survivor/slime/slime_01.png" id="2_payan"]
+[ext_resource type="Texture2D" path="res://assets/sprites/survivor/slime/slime_02.png" id="3_5by55"]
+[ext_resource type="Texture2D" path="res://assets/sprites/survivor/slime/slime_03.png" id="4_jjpgv"]
+[ext_resource type="Texture2D" path="res://assets/sprites/survivor/slime/slime_04.png" id="5_70ppi"]
+[ext_resource type="Texture2D" path="res://assets/sprites/survivor/slime/slime_05.png" id="6_7ebc3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/survivor/slime/slime_06.png" id="7_k8ncp"]
+[ext_resource type="Texture2D" path="res://assets/sprites/survivor/slime/slime_07.png" id="8_eoone"]
+
+[resource]
+animations = [{
+"frames": [],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_0vncn")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_payan")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_5by55")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_jjpgv")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_70ppi")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_7ebc3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_k8ncp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_eoone")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 8.0
+}]

@@ -1,14 +1,36 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=13 format=3 uid="uid://cgohs1etk48tk"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/player.gd" id="1_player"]
+[ext_resource type="Script" uid="uid://csdxj65kfigpx" path="res://Scenes/Game/Survivor/player.gd" id="1_player"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/VFX/attack_range_indicator.tscn" id="2_range_indicator"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/survivor/player/player_walk_frames.tres" id="3_player_frames"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_player"]
-radius = 26.0
-height = 72.0
+radius = 52.0
+height = 144.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_attack_range"]
-radius = 230.0
+radius = 460.0
+
+[sub_resource type="Gradient" id="Gradient_sprint_lines"]
+colors = PackedColorArray(0.74, 0.96, 1, 0.75, 0.34, 0.78, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_sprint_lines"]
+gradient = SubResource("Gradient_sprint_lines")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_sprint_lines"]
+particle_flag_disable_z = true
+emission_shape = 2
+emission_sphere_radius = 1.0
+direction = Vector3(-1, 0, 0)
+spread = 12.0
+initial_velocity_min = 120.0
+initial_velocity_max = 230.0
+gravity = Vector3(0, 0, 0)
+damping_min = 14.0
+damping_max = 24.0
+scale_min = 2.0
+scale_max = 4.2
+color_ramp = SubResource("GradientTexture1D_sprint_lines")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sprint_bg"]
 bg_color = Color(0.03, 0.05, 0.07, 0.88)
@@ -29,58 +51,86 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[node name="Player" type="CharacterBody2D"]
-collision_layer = 1
+[sub_resource type="Gradient" id="Gradient_player_light"]
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_player_light"]
+gradient = SubResource("Gradient_player_light")
+width = 192
+height = 192
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[node name="Player" type="CharacterBody2D" unique_id=328734598]
 collision_mask = 6
 script = ExtResource("1_player")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1236152655]
 shape = SubResource("CapsuleShape2D_player")
 
-[node name="AttackRangeArea" type="Area2D" parent="."]
+[node name="AttackRangeArea" type="Area2D" parent="." unique_id=2124559907]
 collision_layer = 0
 collision_mask = 2
-monitoring = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackRangeArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackRangeArea" unique_id=1807892638]
 shape = SubResource("CircleShape2D_attack_range")
 
-[node name="AttackRangeIndicator" parent="." instance=ExtResource("2_range_indicator")]
-visible = false
+[node name="AttackRangeIndicator" parent="." unique_id=1738715423 instance=ExtResource("2_range_indicator")]
 ring_color = Color(0.94, 0.58, 1, 0.92)
 fill_color = Color(0.82, 0.34, 1, 0.12)
 
-[node name="Visuals" type="Node2D" parent="."]
-scale = Vector2(1.18, 1.18)
+[node name="Visuals" type="Node2D" parent="." unique_id=1695490909]
+scale = Vector2(2.36, 2.36)
 
-[node name="Body" type="Polygon2D" parent="Visuals"]
+[node name="Sprite2D" type="AnimatedSprite2D" parent="Visuals" unique_id=2102640884]
+position = Vector2(0, -6)
+scale = Vector2(0.075, 0.075)
+sprite_frames = ExtResource("3_player_frames")
+animation = &"idle"
+autoplay = "idle"
+frame_progress = 0.78255093
+
+[node name="AuraLight" type="PointLight2D" parent="Visuals"]
+position = Vector2(0, -10)
+color = Color(0.74, 0.9, 1, 1)
+energy = 0.82
+texture = SubResource("GradientTexture2D_player_light")
+texture_scale = 4.5
+
+[node name="Body" type="Polygon2D" parent="Visuals" unique_id=1033695842]
+visible = false
 color = Color(0.18, 0.47, 0.86, 1)
 polygon = PackedVector2Array(-22, -28, 18, -24, 26, 10, 0, 30, -24, 14)
 
-[node name="Face" type="Polygon2D" parent="Visuals"]
+[node name="Face" type="Polygon2D" parent="Visuals" unique_id=426396488]
+visible = false
 color = Color(0.9, 0.78, 0.58, 1)
 polygon = PackedVector2Array(-8, -32, 18, -22, 12, -3, -10, -8)
 
-[node name="GunPivot" type="Node2D" parent="."]
-position = Vector2(15, -8)
+[node name="SprintSpeedLines" type="GPUParticles2D" parent="." unique_id=567491780]
+position = Vector2(0, -8)
+emitting = false
+amount = 38
+lifetime = 0.28
+preprocess = 0.08
+visibility_rect = Rect2(-180, -90, 360, 180)
+process_material = SubResource("ParticleProcessMaterial_sprint_lines")
 
-[node name="GunLine" type="Line2D" parent="GunPivot"]
-points = PackedVector2Array(0, 0, 52, 0)
-width = 9.0
-default_color = Color(0.12, 0.12, 0.13, 1)
-antialiased = true
+[node name="GunPivot" type="Node2D" parent="." unique_id=590586493]
+position = Vector2(30, -16)
 
-[node name="Muzzle" type="Marker2D" parent="GunPivot"]
-position = Vector2(56, 0)
+[node name="Muzzle" type="Marker2D" parent="GunPivot" unique_id=1373345345]
+position = Vector2(112, 0)
 
-[node name="SprintBar" type="ProgressBar" parent="."]
+[node name="SprintBar" type="ProgressBar" parent="." unique_id=559842643]
 visible = false
 offset_left = -46.0
 offset_top = -82.0
 offset_right = 46.0
 offset_bottom = -68.0
-show_percentage = false
 mouse_filter = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_sprint_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_sprint_fill")
 value = 100.0
+show_percentage = false

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="AnchorData" format=3 uid="uid://cs3twfqyk48pi"]
+
+[ext_resource type="Script" uid="uid://cb7sqmf7ylfh2" path="res://Scenes/Game/Survivor/Data/anchor_data.gd" id="1_anchor_data"]
+[ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/Behaviors/projectile_anchor_behavior.tscn" id="2_behavior"]
+[ext_resource type="Texture2D" uid="uid://fh2lyy8tymcy" path="res://assets/sprites/survivor/anchors/frost_circle.png" id="2_r6l2t"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/survivor/anchors/frost_circle_frames.tres" id="4_vy21p"]
+
+[resource]
+script = ExtResource("1_anchor_data")
+anchor_id = "frost_tower"
+display_name = "冰霜塔"
+short_name = "冰霜"
+max_hp = 800.0
+attack_damage = 25.0
+price = 2200
+attack_type = "贯穿"
+attack_radius = 260.0
+trigger_radius = 260.0
+full_damage_radius = 36.0
+min_damage_ratio = 0.5
+icon_texture = ExtResource("2_r6l2t")
+sprite_frames = ExtResource("4_vy21p")
+tint = Color(0.58, 0.92, 1, 1)
+behavior_scene = ExtResource("2_behavior")
+behavior_params = {
+"hit_slow_duration": 0.8,
+"hit_slow_percent": 0.15,
+"pierce_enabled": true,
+"pierce_falloff": 0.5,
+"projectile_color": Color(0.58, 0.92, 1, 1),
+"shot_count": 1
+}

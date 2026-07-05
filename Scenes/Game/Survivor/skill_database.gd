@@ -22,6 +22,9 @@ const SKILL_RESOURCES: Array[Resource] = [
 	preload("res://Scenes/Game/Survivor/Data/skill_1017.tres"),
 	preload("res://Scenes/Game/Survivor/Data/skill_1018.tres"),
 	preload("res://Scenes/Game/Survivor/Data/skill_1019.tres"),
+	preload("res://Scenes/Game/Survivor/Data/skill_1020.tres"),
+	preload("res://Scenes/Game/Survivor/Data/skill_1021.tres"),
+	preload("res://Scenes/Game/Survivor/Data/skill_1022.tres"),
 ]
 
 static var _skills: Array[Dictionary] = []
@@ -76,6 +79,10 @@ static func get_available_options(player_state: Dictionary, count: int = 3) -> A
 	if available.is_empty():
 		return []
 	var options: Array[Dictionary] = []
+	if selected_ids.is_empty():
+		var auto_repair: Dictionary = _take_skill_from_pool(available, 1020)
+		if not auto_repair.is_empty():
+			options.append(auto_repair)
 	if available.size() >= count:
 		var pool: Array[Dictionary] = []
 		for item in available:
@@ -85,10 +92,21 @@ static func get_available_options(player_state: Dictionary, count: int = 3) -> A
 			options.append((pool[pick_index] as Dictionary).duplicate(true))
 			pool.remove_at(pick_index)
 	else:
-		while options.size() < count:
+		while options.size() < count and not available.is_empty():
 			var repeat_index: int = _rng.randi_range(0, available.size() - 1)
 			options.append((available[repeat_index] as Dictionary).duplicate(true))
 	return options
+
+
+# Removes one skill from an option pool and returns a defensive copy.
+static func _take_skill_from_pool(pool: Array[Dictionary], skill_id: int) -> Dictionary:
+	for i in range(pool.size()):
+		if int(pool[i].get("id", 0)) != skill_id:
+			continue
+		var skill: Dictionary = (pool[i] as Dictionary).duplicate(true)
+		pool.remove_at(i)
+		return skill
+	return {}
 
 
 # 只返回当前已经满足前置条件的可抽技能列表。
@@ -134,6 +152,9 @@ static func build_run_modifiers(selected_skill_ids: Array[int]) -> Dictionary:
 	var anchor_attack_bonus: float = 0.0
 	var reward_bonus: float = 0.0
 	var anchor_hit_slow_percent: float = 0.0
+	var auto_repair_percent: float = 0.0
+	var auto_repair_interval: float = 30.0
+	var anchor_attack_speed_bonus: float = 0.0
 	for skill_id in selected_skill_ids:
 		var skill: Dictionary = get_skill(skill_id)
 		var group_id: int = int(skill.get("group_id", 0))
@@ -156,6 +177,13 @@ static func build_run_modifiers(selected_skill_ids: Array[int]) -> Dictionary:
 				reward_bonus = maxf(reward_bonus, float(skill.get("value", 0.0)) / 100.0)
 			8:
 				anchor_hit_slow_percent = maxf(anchor_hit_slow_percent, float(skill.get("value", 0.0)) / 100.0)
+			9:
+				auto_repair_percent = maxf(auto_repair_percent, float(skill.get("value", 0.0)))
+				auto_repair_interval = minf(auto_repair_interval, maxf(1.0, float(skill.get("value2", 30.0))))
+			10:
+				anchor_attack_bonus = maxf(anchor_attack_bonus, float(skill.get("value", 0.0)) / 100.0)
+			11:
+				anchor_attack_speed_bonus = maxf(anchor_attack_speed_bonus, float(skill.get("value", 0.0)) / 100.0)
 			_:
 				pass
 	return {
@@ -167,10 +195,13 @@ static func build_run_modifiers(selected_skill_ids: Array[int]) -> Dictionary:
 		"player_pierce_falloff": pierce_falloff,
 		"anchor_limit": anchor_limit,
 		"anchor_attack_multiplier": 1.0 + anchor_attack_bonus,
+		"anchor_attack_cooldown_multiplier": maxf(0.1, 1.0 / (1.0 + anchor_attack_speed_bonus)),
 		"gold_multiplier": 1.0 + reward_bonus,
 		"exp_multiplier": 1.0 + reward_bonus,
 		"anchor_hit_slow_percent": anchor_hit_slow_percent,
 		"anchor_hit_slow_duration": 1.0,
+		"auto_repair_percent": auto_repair_percent,
+		"auto_repair_interval": auto_repair_interval,
 	}
 
 

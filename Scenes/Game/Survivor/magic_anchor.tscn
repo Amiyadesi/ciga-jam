@@ -1,10 +1,10 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://Scenes/Game/Survivor/magic_anchor.gd" id="1_anchor"]
 [ext_resource type="PackedScene" path="res://Scenes/Game/Survivor/VFX/attack_range_indicator.tscn" id="2_range_indicator"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_anchor"]
-radius = 30.0
+radius = 60.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_range"]
 radius = 200.0
@@ -18,11 +18,27 @@ _data = {
 "idle": SubResource("Animation_anchor_idle")
 }
 
+[sub_resource type="Gradient" id="Gradient_anchor_light"]
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_anchor_light"]
+gradient = SubResource("Gradient_anchor_light")
+width = 160
+height = 160
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
 [node name="MagicAnchor" type="StaticBody2D"]
 collision_layer = 4
 collision_mask = 0
 input_pickable = true
 script = ExtResource("1_anchor")
+
+[node name="AuraLight" type="PointLight2D" parent="."]
+energy = 0.75
+texture = SubResource("GradientTexture2D_anchor_light")
+texture_scale = 3.7
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_anchor")
@@ -31,6 +47,7 @@ shape = SubResource("CircleShape2D_anchor")
 visible = false
 
 [node name="VisualRoot" type="Node2D" parent="."]
+scale = Vector2(2, 2)
 
 [node name="Visual" type="Polygon2D" parent="VisualRoot"]
 color = Color(0.42, 0.75, 1, 1)

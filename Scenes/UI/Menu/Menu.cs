@@ -22,6 +22,7 @@ public partial class Menu : Control
     private Node _thankScreen;
     private Node _growthScreen;
     private CanvasItem _bootFlash;
+    private AudioStreamPlayer _audioStreamPlayer;
 
     // 进入主菜单时连接按钮、配置音频并播放开场表现。
     public override void _Ready()
@@ -34,6 +35,7 @@ public partial class Menu : Control
         _settingScreen = GetNode<Node>("SettingScreen");
         _thankScreen = GetNode<Node>("ThankScreen");
         _growthScreen = GetNode<Node>("GrowthScreen");
+        _audioStreamPlayer = GetNode<AudioStreamPlayer>("AudioStreamPlayer");
 
         Visible = true;
         Modulate = Colors.White;
@@ -48,6 +50,7 @@ public partial class Menu : Control
         ConnectIfNeeded(_exitButton, "pressed", Callable.From(() => GetTree().Quit()));
         PlayEnterTransition();
         PlayBootFlash();
+        CallDeferred(nameof(EnsureMenuMusic));
     }
 
     // 初始化默认存档槽，然后切入生存模式场景。
@@ -173,7 +176,21 @@ public partial class Menu : Control
         gameAudio.Call("setup_menu_shader_button", _settingButton);
         gameAudio.Call("setup_menu_shader_button", _growthButton);
         gameAudio.Call("setup_menu_shader_button", _exitButton);
-        gameAudio.Call("play_menu_music");
+        if (gameAudio.HasMethod("setup_plain_button"))
+        {
+            gameAudio.Call("setup_plain_button", _exitButton, "cancel");
+        }
+        _audioStreamPlayer.Play();
+    }
+
+    // 菜单完全入树后再确认一次 BGM，避免 Autoload 初始化顺序导致漏播。
+    private void EnsureMenuMusic()
+    {
+        var gameAudio = GetNodeOrNull<Node>("/root/GameAudio");
+        if (gameAudio != null && gameAudio.HasMethod("ensure_menu_music"))
+        {
+            gameAudio.Call("ensure_menu_music");
+        }
     }
 
     // 只连接一次信号，避免场景重进后重复回调。

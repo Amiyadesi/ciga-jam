@@ -1,24 +1,39 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/enemy_data.gd" id="1_enemy_data"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/survivor/slime/slime_idle_frames.tres" id="2_42pi3"]
 
 [resource]
 script = ExtResource("1_enemy_data")
 enemy_id = "slime_king"
 display_name = "史莱姆王"
-base_max_hp = 360.0
-hp_per_level = 120.0
-base_attack_damage = 18.0
-damage_per_level = 8.0
-base_speed = 96.0
-speed_per_level = 4.0
-attack_cooldown = 1.2
+base_max_hp = 10000.0
+hp_per_level = 0.0
+base_attack_damage = 50.0
+damage_per_level = 0.0
+base_speed = 132.0
+speed_per_level = 7.0
+attack_cooldown = 1.0
 exp_rewards = PackedFloat32Array(180, 220, 260, 320, 380, 450, 520, 620, 720, 860)
 gold_rewards = PackedInt32Array(220, 260, 320, 380, 460, 540, 640, 760, 900, 1080)
+sprite_frames = ExtResource("2_42pi3")
 tint = Color(0.44, 0.74, 1, 1)
 scale_multiplier = 1.9
 is_boss = true
 summon_enemy_id = "slime_blue"
+summon_entries = [{
+"count": 1,
+"enemy_id": "slime_blue"
+}, {
+"count": 1,
+"enemy_id": "slime_red"
+}, {
+"count": 1,
+"enemy_id": "slime_lightning"
+}, {
+"count": 1,
+"enemy_id": "slime_green"
+}]
 summon_count = 4
-summon_interval = 5.5
+summon_interval = 10.0
 summon_ring_radius = 140.0

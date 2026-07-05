@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="SkillCardData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="SkillCardData" format=3 uid="uid://cplr77c5nwic3"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Script" uid="uid://nxuvr6gx84ch" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Texture2D" uid="uid://k3fbcsopkqb6" path="res://assets/sprites/survivor/skill/skill_1019.png" id="icon_1019"]
 
 [resource]
 script = ExtResource("1_skill_data")
@@ -10,3 +11,4 @@ value = 15.0
 rarity = 2
 description = "魔法锚点对敌人造成伤害时，使敌人减速{0}%"
 group_id = 8
+icon_texture = ExtResource("icon_1019")

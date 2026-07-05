@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="SkillCardData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="SkillCardData" format=3 uid="uid://cfdiubsunxc0q"]
 
-[ext_resource type="Script" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Script" uid="uid://nxuvr6gx84ch" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Texture2D" uid="uid://b6s7g7bajd4i7" path="res://assets/sprites/survivor/skill/skill_1010.png" id="icon_1010"]
 
 [resource]
 script = ExtResource("1_skill_data")
@@ -11,3 +12,4 @@ rarity = 3
 prerequisite = 1009
 description = "玩家攻击命中敌人后会贯穿，每命中一个敌人，伤害衰减{0}%"
 group_id = 4
+icon_texture = ExtResource("icon_1010")

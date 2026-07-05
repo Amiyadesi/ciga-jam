@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://dfy1yvy8pwm8p"]
+
+[ext_resource type="Script" uid="uid://c8n0bar4nb2hw" path="res://Scenes/Game/Survivor/Data/enemy_data.gd" id="1_enemy_data"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/survivor/slime/slime_idle_frames.tres" id="2_uaokd"]
+
+[resource]
+script = ExtResource("1_enemy_data")
+enemy_id = "slime_lightning"
+display_name = "雷电史莱姆"
+base_attack_damage = 1.0
+damage_per_level = 4.0
+base_speed = 126.0
+speed_per_level = 6.0
+attack_cooldown = 0.5
+attack_range = 200.0
+structure_attack_padding = 0.0
+is_ranged = true
+projectile_speed = 540.0
+projectile_color = Color(0.72, 0.24, 1, 1)
+exp_rewards = PackedFloat32Array(4, 6, 8, 12, 16, 20, 24, 30, 34, 38, 42, 47, 52, 57, 62)
+gold_rewards = PackedInt32Array(72, 78, 86, 94, 102, 112, 122, 132, 140, 150, 160, 172, 184, 196, 210)
+sprite_frames = ExtResource("2_uaokd")
+tint = Color(0.68, 0.34, 1, 1)

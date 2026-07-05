@@ -14,13 +14,31 @@ const MAP_SIZE: Vector2 = Vector2(5760.0, 3240.0)
 const HOUSE_POSITION: Vector2 = Vector2(520.0, 1640.0)
 const PLAYER_START: Vector2 = Vector2(860.0, 1640.0)
 const SLOW_TIME_SCALE: float = 0.03
+const RUN_START_GOLD: int = 3000
+const GROWTH_POINT_DIVISOR: int = 500
+const HEAL_POTION_COST: int = 1000
+const HOUSE_REPAIR_COST: int = 1000
+const HOUSE_REPAIR_AMOUNT: float = 20.0
+const CONTROLS_HELP_SEEN_KEY: String = "survivor_controls_help_seen"
+const SPAWN_CHIME_INTERVAL: float = 4.0
+const BOTTOM_VIEW_SAFE_PADDING: float = 360.0
+const BOTTOM_SPAWN_VISIBLE_OFFSET: float = 240.0
 const NAVIGATION_CELL_SIZE: int = 72
-const ROAD_NAV_WEIGHT: float = 0.16
-const ROAD_SHOULDER_NAV_WEIGHT: float = 0.38
-const FOREST_NAV_WEIGHT: float = 4.6
+const ROAD_NAV_WEIGHT: float = 0.5
+const ROAD_SHOULDER_NAV_WEIGHT: float = 0.82
+const FOREST_NAV_WEIGHT: float = 2.35
+const ROAD_WALKABLE_HALF_WIDTH: float = 390.0
+const ROAD_PLACEMENT_HALF_WIDTH: float = 330.0
+const ANCHOR_PLACEMENT_RADIUS: float = 84.0
+const ANCHOR_PLACEMENT_GRID_SIZE: int = 64
+const ANCHOR_PLACEMENT_GRID_PROBE_RADIUS: float = 42.0
+const ANCHOR_PLAYER_CLEARANCE: float = 140.0
+const ANCHOR_ANCHOR_CLEARANCE: float = 164.0
+const MOVE_SPEED_GROWTH_PER_LEVEL: float = 0.05
+const ATTACK_SPEED_GROWTH_PER_LEVEL: float = 0.05
+const START_GOLD_PER_LEVEL: int = 500
 const PLAYER_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/player.tscn")
 const ENEMY_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/enemy.tscn")
-const OBSTACLE_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/obstacle.tscn")
 const HOUSE_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/house.tscn")
 const ANCHOR_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/magic_anchor.tscn")
 const PICKUP_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/pickup.tscn")
@@ -34,31 +52,32 @@ const EXIT_TRANSITION = preload("res://reousrces/scene_transitions/stage_exit_fa
 const ENTER_TRANSITION = preload("res://reousrces/scene_transitions/stage_enter_fade_to_black.tres")
 
 @export var run_slot: int = 1
-@export var obstacle_count: int = 120
-@export var obstacle_cell_size: float = 190.0
-@export var obstacle_noise_threshold: float = 0.1
 
 @onready var world: Node2D = $World
 @onready var ground: Polygon2D = $World/Ground
+@onready var map_background: Sprite2D = $World/MapBackground
 @onready var road_container: Node2D = $World/Roads
 @onready var boundary_container: Node2D = $World/Boundaries
-@onready var obstacle_container: Node2D = $World/Obstacles
 @onready var anchor_container: Node2D = $World/Anchors
 @onready var enemy_container: Node2D = $World/Enemies
 @onready var projectile_container: Node2D = $World/Projectiles
 @onready var pickup_container: Node2D = $World/Pickups
 @onready var placement_preview: Node2D = $World/PlacementPreview
+@onready var preview_range: Sprite2D = $World/PlacementPreview/PreviewRange
 @onready var preview_visual: Polygon2D = $World/PlacementPreview/PreviewVisual
+@onready var preview_sprite: AnimatedSprite2D = $World/PlacementPreview/PreviewSprite
+@onready var mid_point: Node2D = $World/MidPoint
 @onready var camera: Camera2D = $Camera2D
 @onready var low_health_overlay: ColorRect = $HUD/Root/LowHealthOverlay
-@onready var gold_label: Label = $HUD/Root/TopBar/GoldLabel
-@onready var hp_orb: Control = $HUD/Root/TopBar/HpOrb
+@onready var gold_label: Label = $HUD/Root/GoldLabel
+@onready var hp_orb: Control = $HUD/Root/HpOrb
 @onready var wave_label: Label = $HUD/Root/WaveLabel
 @onready var hotbar: Control = $HUD/Root/Hotbar
 @onready var skill_summary_panel: PanelContainer = $HUD/Root/SkillSummaryPanel
 @onready var skill_summary_label: Label = $HUD/Root/SkillSummaryPanel/Margin/VBox/SkillSummaryLabel
 @onready var level_up_button: Button = $HUD/Root/LevelUpButton
 @onready var anchor_detail_panel: Control = $HUD/Root/AnchorDetailPanel
+@onready var house_detail_panel: Control = $HUD/Root/HouseDetailPanel
 @onready var recycle_dialog: Control = $HUD/Root/AnchorRecycleDialog
 @onready var level_up_panel: Control = $HUD/Root/LevelUpPanel
 @onready var exp_progress_bar: ProgressBar = $HUD/Root/ExpProgressBar
@@ -67,17 +86,20 @@ const ENTER_TRANSITION = preload("res://reousrces/scene_transitions/stage_enter_
 @onready var pause_screen: Control = $HUD/PauseScreen
 @onready var setting_screen: Control = $HUD/SettingScreen
 @onready var failure_screen: Control = $HUD/FailureScreen
+@onready var controls_help_panel: Control = $HUD/ControlsHelpPanel
 
 var _state: GameState = GameState.PREPARE
 var _player: Node2D
 var _house: Node2D
 var _kills: int = 0
+var _run_gold: int = RUN_START_GOLD
+var _growth_settled: bool = false
 var _wave_index: int = 0
 var _spawn_queue: Array[Dictionary] = []
 var _spawn_elapsed_time: float = 0.0
+var _spawn_chime_times: Dictionary = {}
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _map_seed: int = 0
-var _obstacle_rects: Array[Rect2] = []
 var _selected_anchor_id: String = ""
 var _exiting: bool = false
 var _settings_from_pause: bool = false
@@ -90,7 +112,13 @@ var _run_modifiers: Dictionary = {}
 var _center_notice_tween: Tween
 var _pending_pickups: Array[Dictionary] = []
 var _navigation_grid: AStarGrid2D
+var _direct_navigation_grid: AStarGrid2D
 var _navigation_grid_size: Vector2i = Vector2i.ZERO
+var _controls_help_paused_tree: bool = false
+var _auto_repair_timer: float = 0.0
+var _anchor_placement_origin: Vector2 = Vector2.ZERO
+var _anchor_placement_grid_size: Vector2i = Vector2i.ZERO
+var _anchor_placement_reachable_cells: Dictionary = {}
 
 
 # 构建地图、实体和 HUD，并连接所有局内流程。
@@ -102,6 +130,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	SkillDb.validate()
 	_prepare_save_slot()
+	_run_gold = _get_run_start_gold()
 	_setup_world()
 	_spawn_house()
 	_spawn_player()
@@ -110,6 +139,7 @@ func _ready() -> void:
 	set_game_state(GameState.PREPARE)
 	_update_hud()
 	_play_enter_transition()
+	_maybe_open_controls_help()
 
 
 # 每帧驱动放置预览、掉落补发和波次收尾检查。
@@ -118,6 +148,7 @@ func _process(delta: float) -> void:
 	_update_anchor_upgrade_affordances()
 	_flush_pending_pickups()
 	_update_screen_shake(delta)
+	_update_auto_repair(delta)
 	if _exiting or _state != GameState.COMBAT:
 		return
 	_update_spawn_queue(delta)
@@ -134,7 +165,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event is InputEventMouseButton:
 			var mouse_event: InputEventMouseButton = event as InputEventMouseButton
 			if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
-				_try_place_selected_anchor()
+				_handle_world_left_click()
 				get_viewport().set_input_as_handled()
 			elif mouse_event.button_index == MOUSE_BUTTON_RIGHT and mouse_event.pressed:
 				_clear_anchor_selection()
@@ -145,6 +176,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_settle_growth_points_once()
 	_save_slot()
 
 
@@ -158,31 +190,34 @@ func set_game_state(new_state: GameState) -> void:
 		GameState.PREPARE:
 			Engine.time_scale = 1.0
 			get_tree().paused = false
-			hotbar.call("set_prepare_state", true, current_wave, total_waves)
+			_apply_hotbar_wave_state(true, current_wave, total_waves)
 			if game_audio != null:
 				game_audio.call("play_prepare_music")
 		GameState.COMBAT:
 			Engine.time_scale = 1.0
 			get_tree().paused = false
-			hotbar.call("set_prepare_state", false, current_wave, total_waves)
+			_apply_hotbar_wave_state(false, current_wave, total_waves)
 			if game_audio != null:
 				game_audio.call("play_combat_music")
 				game_audio.call("play_spawn_chime")
 		GameState.WAVE_CLEAR:
 			Engine.time_scale = 1.0
 			get_tree().paused = false
-			hotbar.call("set_prepare_state", true, clampi(_wave_index + 1, 1, total_waves), total_waves)
+			_apply_hotbar_wave_state(true, clampi(_wave_index + 1, 1, total_waves), total_waves)
 			if game_audio != null:
 				game_audio.call("play_prepare_music")
 		GameState.VICTORY:
 			Engine.time_scale = 1.0
-			hotbar.call("set_prepare_state", false, total_waves, total_waves)
+			_apply_hotbar_wave_state(false, total_waves, total_waves)
 			if game_audio != null:
 				game_audio.call("stop_music", 0.35)
+			var gained_points: int = _settle_growth_points_once()
 			_save_slot()
+			_open_result_screen(true, gained_points)
+			get_tree().paused = true
 		GameState.FAILURE:
 			Engine.time_scale = 1.0
-			hotbar.call("set_prepare_state", false, current_wave, total_waves)
+			_apply_hotbar_wave_state(false, current_wave, total_waves)
 			if game_audio != null:
 				game_audio.call("stop_music", 0.2)
 	_refresh_hotbar()
@@ -211,17 +246,17 @@ func _prepare_save_slot() -> void:
 
 # 创建地面、道路、边界和树林障碍。
 func _setup_world() -> void:
+	var visual_bottom: float = MAP_SIZE.y + BOTTOM_VIEW_SAFE_PADDING
 	ground.polygon = PackedVector2Array([
 		Vector2.ZERO,
 		Vector2(MAP_SIZE.x, 0.0),
-		MAP_SIZE,
-		Vector2(0.0, MAP_SIZE.y),
+		Vector2(MAP_SIZE.x, visual_bottom),
+		Vector2(0.0, visual_bottom),
 	])
 	ground.color = Color(0.17, 0.33, 0.19, 1.0)
 	_configure_roads()
 	_create_boundaries()
-	_generate_obstacles()
-	_rebuild_navigation_grid()
+	call_deferred("_rebuild_anchor_placement_area")
 	placement_preview.visible = false
 
 
@@ -233,16 +268,17 @@ func _configure_roads() -> void:
 		if line == null:
 			continue
 		line.points = paths[i]
-		line.width = 210.0
-		line.default_color = Color(0.42, 0.34, 0.25, 1.0)
+		line.width = 4.0
+		line.default_color = Color(0.42, 0.34, 0.25, 0.0)
+		line.visible = false
 
 
 # 配置地图四周的空气墙。
 func _create_boundaries() -> void:
 	_configure_boundary("NorthWall", Vector2(MAP_SIZE.x * 0.5, -32.0), Vector2(MAP_SIZE.x + 128.0, 64.0))
 	_configure_boundary("SouthWall", Vector2(MAP_SIZE.x * 0.5, MAP_SIZE.y + 32.0), Vector2(MAP_SIZE.x + 128.0, 64.0))
-	_configure_boundary("WestWall", Vector2(-32.0, MAP_SIZE.y * 0.5), Vector2(64.0, MAP_SIZE.y + 128.0))
-	_configure_boundary("EastWall", Vector2(MAP_SIZE.x + 32.0, MAP_SIZE.y * 0.5), Vector2(64.0, MAP_SIZE.y + 128.0))
+	_configure_boundary("WestWall", Vector2(-32.0, (MAP_SIZE.y + BOTTOM_VIEW_SAFE_PADDING) * 0.5), Vector2(64.0, MAP_SIZE.y + BOTTOM_VIEW_SAFE_PADDING + 128.0))
+	_configure_boundary("EastWall", Vector2(MAP_SIZE.x + 32.0, (MAP_SIZE.y + BOTTOM_VIEW_SAFE_PADDING) * 0.5), Vector2(64.0, MAP_SIZE.y + BOTTOM_VIEW_SAFE_PADDING + 128.0))
 
 
 # 把尺寸和位置写入单个边界碰撞体。
@@ -262,30 +298,6 @@ func _configure_boundary(boundary_name: String, center: Vector2, size: Vector2) 
 	body.global_position = center
 
 
-# 按种子生成树林障碍，避开道路和主要安全区。
-func _generate_obstacles() -> void:
-	_obstacle_rects.clear()
-	var density_noise: FastNoiseLite = _make_noise(_map_seed, 0.0032)
-	var detail_noise: FastNoiseLite = _make_noise(_map_seed + 719, 0.009)
-	var candidates: Array[Dictionary] = _build_obstacle_candidates(density_noise)
-	for item in candidates:
-		if _obstacle_rects.size() >= obstacle_count:
-			break
-		var center: Vector2 = item["center"] as Vector2
-		if _is_reserved_map_region(center, 96.0):
-			continue
-		var detail: float = detail_noise.get_noise_2d(center.x, center.y)
-		var size: Vector2 = _pick_obstacle_size(detail)
-		var rect: Rect2 = Rect2(center - size * 0.5, size).grow(40.0)
-		if _rect_overlaps_any(rect):
-			continue
-		var obstacle: StaticBody2D = OBSTACLE_SCENE.instantiate() as StaticBody2D
-		obstacle_container.add_child(obstacle)
-		obstacle.call("setup", center, size, _pick_obstacle_color(detail))
-		var footprint: Rect2 = obstacle.call("get_footprint")
-		_obstacle_rects.append(footprint.grow(46.0))
-
-
 # 生成被守护的房子。
 func _spawn_house() -> void:
 	_house = HOUSE_SCENE.instantiate() as Node2D
@@ -295,6 +307,7 @@ func _spawn_house() -> void:
 	_house.global_position = HOUSE_POSITION
 	_house.connect("health_changed", _on_house_health_changed)
 	_house.connect("died", _on_house_died)
+	_house.connect("open_detail_requested", _on_house_detail_requested)
 
 
 # 生成玩家并连接战斗相关回调。
@@ -306,7 +319,7 @@ func _spawn_player() -> void:
 	_player.connect("died", _on_player_died)
 	_player.connect("exp_changed", _on_player_exp_changed)
 	_player.connect("level_ready", _on_player_level_ready)
-	_player.call("apply_growth_modifiers", _get_stamina_growth_level())
+	_player.call("apply_growth_modifiers", _get_stamina_growth_level(), _get_move_speed_growth_level(), _get_attack_speed_growth_level())
 	if PlayerModule.instance != null:
 		var run_max_hp: int = maxi(1, int(PlayerModule.instance.max_hp))
 		PlayerModule.instance.max_hp = run_max_hp
@@ -320,7 +333,7 @@ func _setup_camera() -> void:
 	camera.limit_left = 0
 	camera.limit_top = 0
 	camera.limit_right = int(MAP_SIZE.x)
-	camera.limit_bottom = int(MAP_SIZE.y)
+	camera.limit_bottom = int(MAP_SIZE.y + BOTTOM_VIEW_SAFE_PADDING)
 	camera.global_position = _player.global_position
 	camera.make_current()
 	camera.reparent(_player)
@@ -333,12 +346,16 @@ func _connect_ui() -> void:
 	pause_screen.process_mode = Node.PROCESS_MODE_ALWAYS
 	setting_screen.process_mode = Node.PROCESS_MODE_ALWAYS
 	failure_screen.process_mode = Node.PROCESS_MODE_ALWAYS
+	controls_help_panel.process_mode = Node.PROCESS_MODE_ALWAYS
 	hotbar.connect("anchor_selected", _on_hotbar_anchor_selected)
 	hotbar.connect("wave_start_pressed", _on_wave_start_pressed)
+	hotbar.connect("heal_pressed", _on_hotbar_heal_pressed)
 	level_up_button.pressed.connect(_on_level_up_button_pressed)
 	anchor_detail_panel.connect("closed", _on_anchor_detail_closed)
 	anchor_detail_panel.connect("upgrade_requested", _on_anchor_upgrade_requested)
 	anchor_detail_panel.connect("recycle_requested", _on_anchor_recycle_requested)
+	house_detail_panel.connect("closed", _on_house_detail_closed)
+	house_detail_panel.connect("repair_requested", _on_house_repair_requested)
 	recycle_dialog.connect("confirmed", _on_anchor_recycle_confirmed)
 	recycle_dialog.connect("cancelled", _on_anchor_recycle_cancelled)
 	level_up_panel.connect("option_selected", _on_level_up_option_selected)
@@ -347,11 +364,14 @@ func _connect_ui() -> void:
 	pause_screen.connect("quit_pressed", _on_pause_quit_pressed)
 	failure_screen.connect("retry_pressed", _on_failure_retry_pressed)
 	failure_screen.connect("menu_pressed", _on_failure_menu_pressed)
+	controls_help_panel.connect("dismissed", _on_controls_help_dismissed)
 	setting_screen.visibility_changed.connect(_on_setting_visibility_changed)
 	setting_screen.set("is_in_menu_flag", false)
 	pause_screen.visible = false
 	setting_screen.visible = false
 	failure_screen.visible = false
+	controls_help_panel.visible = false
+	house_detail_panel.visible = false
 	level_up_button.visible = false
 	recycle_dialog.visible = false
 	skill_summary_panel.visible = false
@@ -374,14 +394,35 @@ func _on_wave_start_pressed() -> void:
 		return
 	_spawn_queue = _build_wave_queue(_wave_index)
 	_spawn_elapsed_time = 0.0
+	_spawn_chime_times.clear()
 	_clear_anchor_selection()
 	set_game_state(GameState.COMBAT)
+	var wave_info: Dictionary = _get_wave_display_data(_wave_index)
+	var notice: String = str(wave_info.get("name", "战斗开始"))
+	var description: String = str(wave_info.get("description", ""))
+	if not description.is_empty():
+		notice += "：%s" % description
+	_show_center_notice(notice)
 
 
 # 记录热栏当前选中的锚点类型。
 func _on_hotbar_anchor_selected(anchor_id: String) -> void:
 	_selected_anchor_id = anchor_id
 	_refresh_hotbar()
+
+
+# 使用热栏血瓶，消耗本局金币并回满玩家。
+func _on_hotbar_heal_pressed() -> void:
+	if not _can_use_heal_potion():
+		_refresh_hotbar()
+		return
+	if not _spend_run_gold(HEAL_POTION_COST):
+		_refresh_hotbar()
+		return
+	_player.call("heal_to_full")
+	_show_center_notice("生命已回满")
+	_refresh_hotbar()
+	_update_hud()
 
 
 # 打开三选一卡牌面板，并进入慢速时间。
@@ -420,6 +461,8 @@ func _on_level_up_option_selected(skill_id: int) -> void:
 func _on_anchor_detail_requested(anchor: Node) -> void:
 	if _state == GameState.FAILURE:
 		return
+	if house_detail_panel.visible:
+		house_detail_panel.call("close_panel")
 	recycle_dialog.call("close_dialog")
 	anchor_detail_panel.call("open_for_anchor", anchor)
 	Engine.time_scale = SLOW_TIME_SCALE
@@ -430,6 +473,42 @@ func _on_anchor_detail_closed() -> void:
 	anchor_detail_panel.call("close_panel")
 	recycle_dialog.call("close_dialog")
 	_restore_slow_time_if_clear()
+
+
+# 打开房子详情并进入慢速时间。
+func _on_house_detail_requested(house: Node) -> void:
+	if _state == GameState.FAILURE:
+		return
+	if anchor_detail_panel.visible:
+		anchor_detail_panel.call("close_panel")
+	recycle_dialog.call("close_dialog")
+	house_detail_panel.call("open_for_house", house)
+	house_detail_panel.call("refresh_current_house", _get_gold())
+	Engine.time_scale = SLOW_TIME_SCALE
+
+
+# 关闭房子详情，并在没有其他慢速面板时恢复时间。
+func _on_house_detail_closed() -> void:
+	house_detail_panel.call("close_panel")
+	_restore_slow_time_if_clear()
+
+
+# 消耗本局金币修补房子。
+func _on_house_repair_requested(house: Node) -> void:
+	if not is_instance_valid(house):
+		return
+	if _get_gold() < HOUSE_REPAIR_COST:
+		_show_center_notice("金币不足")
+		house_detail_panel.call("refresh_current_house", _get_gold())
+		return
+	if not house.has_method("repair") or not bool(house.call("repair", HOUSE_REPAIR_AMOUNT)):
+		_show_center_notice("房子不需要修补")
+		house_detail_panel.call("refresh_current_house", _get_gold())
+		return
+	if not _spend_run_gold(HOUSE_REPAIR_COST):
+		return
+	house_detail_panel.call("refresh_current_house", _get_gold())
+	_update_hud()
 
 
 # 金币足够时升级锚点。
@@ -444,15 +523,13 @@ func _on_anchor_upgrade_requested(anchor: Node) -> void:
 		_show_center_notice("金币不足")
 		anchor_detail_panel.call("refresh_current_anchor")
 		return
-	if PlayerModule.instance != null:
-		PlayerModule.instance.gold -= cost
+	if not _spend_run_gold(cost):
+		return
 	if not bool(anchor.call("upgrade")):
-		if PlayerModule.instance != null:
-			PlayerModule.instance.gold += cost
+		_add_run_gold(cost)
 		_show_center_notice("升级失败")
 		return
 	_apply_run_modifiers_to_anchor(anchor)
-	_save_slot()
 	_refresh_hotbar()
 	anchor_detail_panel.call("refresh_current_anchor")
 	_update_anchor_upgrade_affordances()
@@ -472,12 +549,10 @@ func _on_anchor_recycle_confirmed(anchor: Node) -> void:
 		_restore_slow_time_if_clear()
 		return
 	var refund: int = int(round(float(anchor.call("get_current_price")) * 0.6))
-	if PlayerModule.instance != null:
-		PlayerModule.instance.gold += refund
+	_add_run_gold(refund)
 	if anchor_detail_panel.visible:
 		anchor_detail_panel.call("close_panel")
 	anchor.queue_free()
-	_save_slot()
 	_refresh_hotbar()
 	_update_anchor_upgrade_affordances()
 	_restore_slow_time_if_clear()
@@ -505,6 +580,8 @@ func _on_player_died() -> void:
 
 # 房子血量变化时刷新 HUD。
 func _on_house_health_changed(_current_hp: int, _max_hp: int) -> void:
+	if house_detail_panel.visible:
+		house_detail_panel.call("refresh_current_house", _get_gold())
 	_update_hud()
 
 
@@ -540,9 +617,7 @@ func _on_enemy_died(enemy: Node, gold_reward: int, exp_reward: int) -> void:
 func _on_pickup_collected(kind: String, amount: int) -> void:
 	var final_amount: int = _scale_reward_amount(kind, amount)
 	if kind == "gold":
-		if PlayerModule.instance != null:
-			PlayerModule.instance.gold += final_amount
-		_save_slot()
+		_add_run_gold(final_amount)
 	elif kind == "exp" and is_instance_valid(_player):
 		_player.call("add_exp", final_amount)
 	_refresh_hotbar()
@@ -554,12 +629,18 @@ func _on_pickup_collected(kind: String, amount: int) -> void:
 
 # 根据当前界面状态处理 Escape。
 func _handle_pause_pressed() -> void:
+	if controls_help_panel.visible:
+		_on_controls_help_dismissed()
+		return
 	if recycle_dialog.visible:
 		recycle_dialog.call("close_dialog")
 		_restore_slow_time_if_clear()
 		return
 	if anchor_detail_panel.visible:
 		_on_anchor_detail_closed()
+		return
+	if house_detail_panel.visible:
+		_on_house_detail_closed()
 		return
 	if level_up_panel.visible:
 		return
@@ -569,7 +650,7 @@ func _handle_pause_pressed() -> void:
 	if pause_screen.visible:
 		_resume_game()
 		return
-	if _state == GameState.FAILURE:
+	if failure_screen.visible or _state == GameState.FAILURE or _state == GameState.VICTORY:
 		return
 	Engine.time_scale = 1.0
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -607,7 +688,7 @@ func _on_failure_menu_pressed() -> void:
 
 # 设置面板关闭后，如有需要重新打开暂停界面。
 func _on_setting_visibility_changed() -> void:
-	if setting_screen.visible or _exiting or _state == GameState.FAILURE:
+	if setting_screen.visible or _exiting or _state == GameState.FAILURE or _state == GameState.VICTORY:
 		return
 	if _settings_from_pause:
 		_settings_from_pause = false
@@ -617,11 +698,50 @@ func _on_setting_visibility_changed() -> void:
 
 # 关闭暂停界面并恢复游戏。
 func _resume_game() -> void:
-	if _state == GameState.FAILURE:
+	if _state == GameState.FAILURE or _state == GameState.VICTORY:
 		return
 	pause_screen.call("close_modal")
 	get_tree().paused = false
 	_restore_slow_time_if_clear()
+
+
+# 首次进入战斗时显示一次键位说明，并临时暂停世界。
+func _maybe_open_controls_help() -> void:
+	if controls_help_panel == null or _has_seen_controls_help():
+		return
+	Engine.time_scale = 1.0
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_controls_help_paused_tree = not get_tree().paused
+	controls_help_panel.call("open_panel")
+	get_tree().paused = true
+
+
+# 关闭首次键位说明并写入当前槽位，避免下次进入重复显示。
+func _on_controls_help_dismissed() -> void:
+	if controls_help_panel.visible:
+		controls_help_panel.call("close_panel")
+	_mark_controls_help_seen()
+	if _controls_help_paused_tree and _state != GameState.FAILURE and _state != GameState.VICTORY:
+		get_tree().paused = false
+	_controls_help_paused_tree = false
+	_restore_slow_time_if_clear()
+
+
+# 判断当前槽位是否已经看过新手键位面板。
+func _has_seen_controls_help() -> bool:
+	if PlayerModule.instance == null:
+		return false
+	return bool(PlayerModule.instance.custom.get(CONTROLS_HELP_SEEN_KEY, false))
+
+
+# 标记新手键位面板已读，并通过现有 SaveSystem 落盘。
+func _mark_controls_help_seen() -> void:
+	if PlayerModule.instance == null:
+		return
+	if bool(PlayerModule.instance.custom.get(CONTROLS_HELP_SEEN_KEY, false)):
+		return
+	PlayerModule.instance.custom[CONTROLS_HELP_SEEN_KEY] = true
+	_save_slot()
 
 
 # 写回当前进度并切回菜单场景。
@@ -633,6 +753,7 @@ func _return_to_menu() -> void:
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_reset_saved_health_for_next_run()
+	_settle_growth_points_once()
 	_save_slot()
 	await _change_scene_with_transition(MENU_SCENE_PATH)
 
@@ -646,6 +767,7 @@ func _retry_run() -> void:
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_reset_saved_health_for_next_run()
+	_settle_growth_points_once()
 	_save_slot()
 	await _reload_scene_with_transition()
 
@@ -659,13 +781,14 @@ func _fail_run(reason: String) -> void:
 	_spawn_elapsed_time = 0.0
 	placement_preview.visible = false
 	anchor_detail_panel.call("close_panel")
+	house_detail_panel.call("close_panel")
 	recycle_dialog.call("close_dialog")
 	level_up_panel.call("close_panel")
 	level_up_button.visible = false
 	_reset_saved_health_for_next_run()
+	var gained_points: int = _settle_growth_points_once()
 	_save_slot()
-	failure_screen.call("set_summary", _kills, _get_gold())
-	failure_screen.call("open_modal")
+	_open_result_screen(false, gained_points)
 	get_tree().paused = true
 	_show_center_notice(reason)
 
@@ -706,7 +829,8 @@ func _spawn_enemy(entry: Dictionary) -> void:
 	var enemy: CharacterBody2D = ENEMY_SCENE.instantiate() as CharacterBody2D
 	enemy_container.add_child(enemy)
 	var spawn_points: Array[Vector2] = _get_spawn_points()
-	var spawn_point: Vector2 = spawn_points[int(entry.get("spawn", 0)) % spawn_points.size()]
+	var spawn_index: int = int(entry.get("spawn", 0)) % spawn_points.size()
+	var spawn_point: Vector2 = _get_enemy_spawn_position(spawn_index)
 	enemy.global_position = spawn_point
 	enemy.call(
 		"setup",
@@ -718,7 +842,22 @@ func _spawn_enemy(entry: Dictionary) -> void:
 		Callable(self, "_spawn_summoned_pack"),
 		Callable(self, "_get_enemy_navigation_path")
 	)
+	if enemy.has_method("configure_route"):
+		enemy.call("configure_route", spawn_index, _get_enemy_route(spawn_index), Callable(self, "_get_enemy_return_path"))
 	enemy.connect("died", _on_enemy_died)
+	_play_spawn_chime_for_spawn_index(spawn_index)
+
+
+# 在实际刷新点出怪时播放提示音，并按刷新点节流。
+func _play_spawn_chime_for_spawn_index(spawn_index: int) -> void:
+	var key: String = str(spawn_index)
+	var last_time: float = float(_spawn_chime_times.get(key, -SPAWN_CHIME_INTERVAL))
+	if _spawn_elapsed_time - last_time < SPAWN_CHIME_INTERVAL:
+		return
+	_spawn_chime_times[key] = _spawn_elapsed_time
+	var game_audio: Node = _get_game_audio()
+	if game_audio != null:
+		game_audio.call("play_spawn_chime")
 
 
 # 实例化一个掉落物，并连接拾取信号。
@@ -794,13 +933,77 @@ func _try_place_selected_anchor() -> void:
 	anchor.connect("open_detail_requested", _on_anchor_detail_requested)
 	anchor.connect("upgrade_requested", _on_anchor_upgrade_requested)
 	anchor.connect("died", _on_anchor_died)
-	if PlayerModule.instance != null:
-		PlayerModule.instance.gold -= price
-	_save_slot()
+	if not _spend_run_gold(price):
+		anchor.queue_free()
+		return
 	_refresh_hotbar()
 	_update_anchor_upgrade_affordances()
 	_show_center_notice("%s 已放置" % str(stats.get("display_name", _selected_anchor_id)))
 	_update_hud()
+
+
+# 优先把左键点击分派给房子或已放置锚点，没有命中时才尝试放置。
+func _handle_world_left_click() -> void:
+	if pause_screen.visible or setting_screen.visible or failure_screen.visible or level_up_panel.visible or recycle_dialog.visible:
+		return
+	var target: Node = _find_detail_target_at(get_global_mouse_position())
+	if target != null:
+		_open_detail_target(target)
+		return
+	_try_place_selected_anchor()
+
+
+# 查找鼠标位置下可打开详情的世界物体，避开同层障碍物抢点击。
+func _find_detail_target_at(world_position: Vector2) -> Node:
+	var query := PhysicsPointQueryParameters2D.new()
+	query.position = world_position
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+	query.collision_mask = 4 | 16
+	var hits: Array[Dictionary] = get_world_2d().direct_space_state.intersect_point(query, 24)
+	for hit in hits:
+		var collider: Object = hit.get("collider")
+		if collider is Node and _is_detail_click_target(collider as Node):
+			return collider as Node
+	return _find_nearest_detail_target(world_position)
+
+
+# 用较小半径兜底贴图边缘点击，避免碰撞体比占位图略小导致打不开面板。
+func _find_nearest_detail_target(world_position: Vector2) -> Node:
+	var best: Node = null
+	var best_distance_sq: float = 96.0 * 96.0
+	if is_instance_valid(_house) and _is_detail_click_target(_house):
+		var house_distance_sq: float = (_house as Node2D).global_position.distance_squared_to(world_position)
+		if house_distance_sq < best_distance_sq:
+			best = _house
+			best_distance_sq = house_distance_sq
+	for node in _get_anchor_nodes():
+		if not _is_detail_click_target(node):
+			continue
+		var anchor_distance_sq: float = (node as Node2D).global_position.distance_squared_to(world_position)
+		if anchor_distance_sq < best_distance_sq:
+			best = node
+			best_distance_sq = anchor_distance_sq
+	return best
+
+
+# 判断一个节点是否应该响应详情面板点击。
+func _is_detail_click_target(node: Node) -> bool:
+	if not is_instance_valid(node) or not (node is Node2D):
+		return false
+	if node == _house:
+		return true
+	if node.is_in_group("anchors"):
+		return true
+	return false
+
+
+# 根据点击对象打开对应右侧详情面板。
+func _open_detail_target(target: Node) -> void:
+	if target == _house:
+		_on_house_detail_requested(target)
+	elif target.is_in_group("anchors"):
+		_on_anchor_detail_requested(target)
 
 
 # 锚点死亡后刷新附近升级提示和热栏。
@@ -816,6 +1019,9 @@ func _clear_anchor_selection() -> void:
 	_selected_anchor_id = ""
 	_refresh_hotbar()
 	placement_preview.visible = false
+	preview_range.visible = false
+	preview_sprite.visible = false
+	preview_visual.visible = true
 
 
 # 更新鼠标下方的放置预览。
@@ -833,20 +1039,92 @@ func _update_placement_preview() -> void:
 	var price: int = int(stats.get("price", 0))
 	var legal: bool = _can_place_anchor_at(mouse_world) and _get_gold() >= price
 	var base_color: Color = stats.get("tint", Color(0.42, 0.75, 1.0, 1.0)) as Color
-	preview_visual.color = Color(base_color.r, base_color.g, base_color.b, 0.4 if legal else 0.22)
+	_apply_anchor_preview_visual(stats, base_color, legal)
+
+
+# 用当前锚点贴图刷新放置预览，资源缺失时才显示旧占位轮廓。
+func _apply_anchor_preview_visual(stats: Dictionary, base_color: Color, legal: bool) -> void:
+	var alpha: float = 0.4 if legal else 0.22
+	var preview_color: Color = base_color if legal else Color(1.0, 0.22, 0.18, 1.0)
+	_apply_anchor_preview_range(stats, preview_color, legal)
+	var frames: SpriteFrames = stats.get("sprite_frames") as SpriteFrames
+	var has_frames: bool = frames != null and frames.get_animation_names().size() > 0
+	preview_visual.visible = true
+	preview_visual.color = Color(preview_color.r, preview_color.g, preview_color.b, 0.24 if legal else 0.18)
+	if has_frames:
+		preview_sprite.visible = true
+		preview_sprite.sprite_frames = frames
+		var animation_names: PackedStringArray = frames.get_animation_names()
+		var default_animation: StringName = animation_names[0]
+		preview_sprite.animation = default_animation
+		if frames.has_animation(default_animation) and not preview_sprite.is_playing():
+			preview_sprite.play(default_animation)
+		preview_sprite.scale = _get_anchor_preview_sprite_scale(_selected_anchor_id)
+		preview_sprite.position = _get_anchor_preview_sprite_offset(_selected_anchor_id)
+		preview_sprite.modulate = Color(preview_color.r, preview_color.g, preview_color.b, alpha)
+		return
+	preview_sprite.visible = false
+	preview_visual.color = Color(preview_color.r, preview_color.g, preview_color.b, alpha)
+
+
+# 显示当前锚点的攻击范围预览，和贴图预览分离。
+func _apply_anchor_preview_range(stats: Dictionary, color: Color, legal: bool) -> void:
+	if preview_range == null:
+		return
+	var radius: float = float(stats.get("attack_radius", 0.0))
+	if radius <= 0.0:
+		preview_range.visible = false
+		return
+	preview_range.visible = true
+	preview_range.self_modulate = Color(color.r, color.g, color.b, 0.18 if legal else 0.12)
+	if preview_range.texture != null:
+		var diameter: float = maxf(1.0, float(preview_range.texture.get_width()))
+		var scale_factor: float = radius * 2.0 / diameter
+		preview_range.scale = Vector2.ONE * scale_factor
+
+
+# 预览节点不在 MagicAnchor 的 VisualRoot 下，需要使用等效的世界显示缩放。
+func _get_anchor_preview_sprite_scale(anchor_id: String) -> Vector2:
+	match anchor_id:
+		"xiu_xiu", "double_xiu_xiu":
+			return Vector2(0.21, 0.21)
+		"mine":
+			return Vector2(0.30, 0.30)
+		"frost_circle":
+			return Vector2(0.36, 0.36)
+		"mushroom_tower":
+			return Vector2(0.38, 0.38)
+		"frost_tower":
+			return Vector2(0.30, 0.30)
+		_:
+			return Vector2(0.32, 0.32)
+
+
+# 让预览贴图和实际放下后的锚点重心一致。
+func _get_anchor_preview_sprite_offset(anchor_id: String) -> Vector2:
+	match anchor_id:
+		"xiu_xiu", "double_xiu_xiu":
+			return Vector2(0.0, -6.0)
+		"mine":
+			return Vector2(0.0, -4.0)
+		"mushroom_tower":
+			return Vector2(0.0, -16.0)
+		_:
+			return Vector2.ZERO
 
 
 # 检查当前位置是否允许放置锚点。
 func _can_place_anchor_at(candidate_position: Vector2) -> bool:
-	if _is_anchor_placement_blocked_region(candidate_position, 42.0):
+	if _is_anchor_placement_blocked_region(candidate_position, ANCHOR_PLACEMENT_RADIUS):
 		return false
-	if is_instance_valid(_player) and candidate_position.distance_to(_player.global_position) < 78.0:
+	if not _is_in_anchor_placement_area(candidate_position):
 		return false
-	for rect in _obstacle_rects:
-		if rect.has_point(candidate_position):
-			return false
+	if _is_anchor_placement_shape_blocked(candidate_position):
+		return false
+	if is_instance_valid(_player) and candidate_position.distance_to(_player.global_position) < ANCHOR_PLAYER_CLEARANCE:
+		return false
 	for node in _get_anchor_nodes():
-		if is_instance_valid(node) and (node as Node2D).global_position.distance_to(candidate_position) < 82.0:
+		if is_instance_valid(node) and (node as Node2D).global_position.distance_to(candidate_position) < ANCHOR_ANCHOR_CLEARANCE:
 			return false
 	return true
 
@@ -877,15 +1155,47 @@ func _get_total_waves() -> int:
 	return maxi(1, int(WAVE_TABLE.call("get_total_waves")))
 
 
+# 返回当前波次给 UI 使用的名字和说明。
+func _get_wave_display_data(wave_index: int) -> Dictionary:
+	var total_waves: int = _get_total_waves()
+	var safe_index: int = clampi(wave_index, 0, total_waves - 1)
+	var wave_data: Dictionary = WAVE_TABLE.call("get_wave", safe_index)
+	var fallback_name: String = "第 %d 波" % (safe_index + 1)
+	return {
+		"name": str(wave_data.get("name", fallback_name)),
+		"description": str(wave_data.get("description", "")),
+		"boss_wave": bool(wave_data.get("boss_wave", false)),
+	}
+
+
+# 把当前波次案内同步给底部开始按钮 tooltip。
+func _apply_hotbar_wave_state(is_prepare: bool, wave_index: int, total_waves: int) -> void:
+	var wave_info: Dictionary = _get_wave_display_data(wave_index - 1)
+	hotbar.call(
+		"set_prepare_state",
+		is_prepare,
+		wave_index,
+		total_waves,
+		str(wave_info.get("name", "")),
+		str(wave_info.get("description", ""))
+	)
+
+
 # 根据当前金币和选中状态刷新热栏。
 func _refresh_hotbar() -> void:
+	var needs_heal: bool = is_instance_valid(_player) and int(_player.get("current_hp")) < int(_player.get("max_hp"))
+	var heal_enabled: bool = _can_use_heal_potion()
 	if _selected_anchor_id.is_empty():
 		hotbar.call("set_shop_state", "", _get_gold())
+		if hotbar.has_method("set_heal_state"):
+			hotbar.call("set_heal_state", HEAL_POTION_COST, heal_enabled, needs_heal)
 		return
 	var stats: Dictionary = AnchorDb.get_stats(_selected_anchor_id, 1)
 	if stats.is_empty() or _get_gold() < int(stats.get("price", 0)):
 		_selected_anchor_id = ""
 	hotbar.call("set_shop_state", _selected_anchor_id, _get_gold())
+	if hotbar.has_method("set_heal_state"):
+		hotbar.call("set_heal_state", HEAL_POTION_COST, heal_enabled, needs_heal)
 
 
 # 根据已选卡牌重建本局运行时修正。
@@ -895,6 +1205,7 @@ func _sync_run_modifiers_from_player() -> void:
 		for item in _player.get("selected_skill_ids") as Array:
 			selected_skill_ids.append(int(item))
 	_run_modifiers = SkillDb.build_run_modifiers(selected_skill_ids)
+	_auto_repair_timer = 0.0 if float(_run_modifiers.get("auto_repair_percent", 0.0)) <= 0.0 else _auto_repair_timer
 	if is_instance_valid(_player):
 		_player.call("apply_run_skill_modifiers", _run_modifiers)
 	for anchor in _get_anchor_nodes():
@@ -908,6 +1219,40 @@ func _sync_run_modifiers_from_player() -> void:
 func _apply_run_modifiers_to_anchor(anchor: Node) -> void:
 	if is_instance_valid(anchor) and anchor.has_method("set_runtime_modifiers"):
 		anchor.call("set_runtime_modifiers", _run_modifiers)
+
+
+## 战斗中按技能配置自动修复房子和可受伤锚点。
+func _update_auto_repair(delta: float) -> void:
+	if _state != GameState.COMBAT:
+		return
+	var repair_percent: float = float(_run_modifiers.get("auto_repair_percent", 0.0))
+	if repair_percent <= 0.0:
+		return
+	var interval: float = maxf(1.0, float(_run_modifiers.get("auto_repair_interval", 30.0)))
+	_auto_repair_timer += delta
+	if _auto_repair_timer < interval:
+		return
+	_auto_repair_timer = 0.0
+	_apply_auto_repair_tick(repair_percent)
+
+
+## 执行一次自动修复，并刷新相关面板。
+func _apply_auto_repair_tick(percent: float) -> void:
+	var repaired_any: bool = false
+	if is_instance_valid(_house):
+		var max_house_hp: float = float(_house.get("max_hp"))
+		if _house.has_method("repair"):
+			repaired_any = bool(_house.call("repair", max_house_hp * percent)) or repaired_any
+	for anchor in _get_anchor_nodes():
+		if not is_instance_valid(anchor) or not anchor.has_method("repair_percent"):
+			continue
+		repaired_any = bool(anchor.call("repair_percent", percent)) or repaired_any
+	if repaired_any:
+		if anchor_detail_panel.visible:
+			anchor_detail_panel.call("refresh_current_anchor")
+		if house_detail_panel.visible:
+			house_detail_panel.call("refresh_current_house", _get_gold())
+		_update_hud()
 
 
 # 返回当前局内可放置锚点上限。
@@ -965,63 +1310,181 @@ func _refresh_skill_summary() -> void:
 
 
 # 在指定位置周围生成 Boss 召唤出来的一圈小怪。
-func _spawn_summoned_pack(enemy_id: String, level: int, center: Vector2, count: int, radius: float) -> void:
-	var runtime: Dictionary = ENEMY_CATALOG.call("get_runtime_stats", enemy_id, level)
-	if runtime.is_empty():
+func _spawn_summoned_pack(enemy_spec: Variant, level: int, center: Vector2, count: int, radius: float) -> void:
+	var summon_entries: Array[Dictionary] = _normalize_summon_entries(enemy_spec, level, count)
+	if summon_entries.is_empty():
 		return
-	var safe_count: int = maxi(1, count)
-	for i in range(safe_count):
-		var enemy: CharacterBody2D = ENEMY_SCENE.instantiate() as CharacterBody2D
-		enemy_container.add_child(enemy)
-		var angle: float = TAU * float(i) / float(safe_count) + _rng.randf_range(-0.2, 0.2)
-		var distance: float = _rng.randf_range(radius * 0.35, radius)
-		var spawn_position: Vector2 = center + Vector2.RIGHT.rotated(angle) * distance
-		spawn_position.x = clampf(spawn_position.x, 72.0, MAP_SIZE.x - 72.0)
-		spawn_position.y = clampf(spawn_position.y, 72.0, MAP_SIZE.y - 72.0)
-		enemy.global_position = spawn_position
-		enemy.call(
-			"setup",
-			runtime.duplicate(true),
-			level,
-			_house,
-			_player,
-			Callable(self, "_get_anchor_nodes"),
-			Callable(self, "_spawn_summoned_pack"),
-			Callable(self, "_get_enemy_navigation_path")
-		)
-		enemy.connect("died", _on_enemy_died)
+	var total_count: int = 0
+	for entry in summon_entries:
+		total_count += maxi(1, int(entry.get("count", 1)))
+	var spawn_index: int = 0
+	for entry in summon_entries:
+		var enemy_id: String = str(entry.get("enemy_id", "slime_blue"))
+		var enemy_level: int = maxi(1, int(entry.get("level", level)))
+		var entry_count: int = maxi(1, int(entry.get("count", 1)))
+		var runtime: Dictionary = ENEMY_CATALOG.call("get_runtime_stats", enemy_id, enemy_level)
+		if runtime.is_empty():
+			continue
+		for i in range(entry_count):
+			_spawn_summoned_enemy(runtime, enemy_level, center, radius, spawn_index, maxi(1, total_count))
+			spawn_index += 1
 
 
-# 用障碍碰撞和道路权重重建敌人共用的导航网格。
+# 把 Boss 召唤配置统一成敌人 id/等级/数量条目，兼容旧的单怪召唤格式。
+func _normalize_summon_entries(enemy_spec: Variant, level: int, count: int) -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	if enemy_spec is Array:
+		for raw_entry in enemy_spec as Array:
+			if not (raw_entry is Dictionary):
+				continue
+			var entry: Dictionary = (raw_entry as Dictionary).duplicate(true)
+			if not entry.has("level"):
+				entry["level"] = level
+			entries.append(entry)
+	elif enemy_spec is String:
+		var enemy_id: String = str(enemy_spec)
+		if not enemy_id.is_empty():
+			entries.append({"enemy_id": enemy_id, "level": level, "count": maxi(1, count)})
+	return entries
+
+
+# 在 Boss 周围生成一只召唤小怪，并继承当前局内目标和寻路上下文。
+func _spawn_summoned_enemy(runtime: Dictionary, level: int, center: Vector2, radius: float, index: int, total_count: int) -> void:
+	var enemy: CharacterBody2D = ENEMY_SCENE.instantiate() as CharacterBody2D
+	enemy_container.add_child(enemy)
+	var angle: float = TAU * float(index) / float(maxi(1, total_count)) + _rng.randf_range(-0.2, 0.2)
+	var distance: float = _rng.randf_range(radius * 0.35, radius)
+	var spawn_position: Vector2 = center + Vector2.RIGHT.rotated(angle) * distance
+	spawn_position.x = clampf(spawn_position.x, 72.0, MAP_SIZE.x - 72.0)
+	spawn_position.y = clampf(spawn_position.y, 72.0, MAP_SIZE.y - 72.0)
+	enemy.global_position = spawn_position
+	enemy.call(
+		"setup",
+		runtime.duplicate(true),
+		level,
+		_house,
+		_player,
+		Callable(self, "_get_anchor_nodes"),
+		Callable(self, "_spawn_summoned_pack"),
+		Callable(self, "_get_enemy_navigation_path")
+	)
+	if enemy.has_method("configure_route"):
+		var spawn_index_for_route: int = _get_nearest_spawn_index(spawn_position)
+		enemy.call("configure_route", spawn_index_for_route, _get_enemy_route(spawn_index_for_route), Callable(self, "_get_enemy_return_path"))
+		if enemy.has_method("begin_return_to_route"):
+			enemy.call("begin_return_to_route")
+	enemy.connect("died", _on_enemy_died)
+
+
+# 返回修正后的敌人出生点，底部出生点沿路上移，避免被底部 HUD 遮住。
+func _get_enemy_spawn_position(spawn_index: int) -> Vector2:
+	var spawn_points: Array[Vector2] = _get_spawn_points()
+	if spawn_points.is_empty():
+		return PLAYER_START
+	var safe_index: int = clampi(spawn_index, 0, spawn_points.size() - 1)
+	var spawn_point: Vector2 = spawn_points[safe_index]
+	if safe_index == 1:
+		var path: PackedVector2Array = _get_enemy_route(1)
+		if path.size() >= 2:
+			var next_point: Vector2 = path[1]
+			spawn_point = spawn_point.move_toward(next_point, BOTTOM_SPAWN_VISIBLE_OFFSET)
+	return spawn_point
+
+
+# 返回敌人默认推房用路线，方向统一为出生点到房子。
+func _get_enemy_route(spawn_index: int) -> PackedVector2Array:
+	var spawn_points: Array[Vector2] = _get_spawn_points()
+	if spawn_points.is_empty():
+		return PackedVector2Array([HOUSE_POSITION])
+	var safe_index: int = clampi(spawn_index, 0, spawn_points.size() - 1)
+	if safe_index == 1:
+		return PackedVector2Array([spawn_points[safe_index], _get_midpoint_position(), HOUSE_POSITION])
+	return PackedVector2Array([spawn_points[safe_index], HOUSE_POSITION])
+
+
+# 返回地图中点；缺节点时用旧下路汇入点硬兜底并报错。
+func _get_midpoint_position() -> Vector2:
+	if mid_point == null:
+		push_error("SurvivorGame: missing World/MidPoint for bottom enemy route")
+		return Vector2(2920.0, 1258.0)
+	return mid_point.global_position
+
+
+# 从当前位置规划一次避障路径，接到离当前位置最近的推房路线点。
+func _get_enemy_return_path(start_position: Vector2, spawn_index: int = 0) -> PackedVector2Array:
+	var route: PackedVector2Array = _get_enemy_route(spawn_index)
+	if route.is_empty():
+		return _get_enemy_navigation_path(start_position, HOUSE_POSITION, false)
+	var best_point: Vector2 = route[0]
+	var best_distance_sq: float = INF
+	for point in route:
+		var distance_sq: float = start_position.distance_squared_to(point)
+		if distance_sq < best_distance_sq:
+			best_distance_sq = distance_sq
+			best_point = point
+	return _get_enemy_navigation_path(start_position, best_point, false)
+
+
+# 返回离指定位置最近的出生点索引，供召唤怪接入合适路线。
+func _get_nearest_spawn_index(world_position: Vector2) -> int:
+	var spawn_points: Array[Vector2] = _get_spawn_points()
+	if spawn_points.is_empty():
+		return 0
+	var best_index: int = 0
+	var best_distance_sq: float = INF
+	for i in range(spawn_points.size()):
+		var distance_sq: float = world_position.distance_squared_to(spawn_points[i])
+		if distance_sq < best_distance_sq:
+			best_distance_sq = distance_sq
+			best_index = i
+	return best_index
+
+
+# 用障碍碰撞重建敌人共用的道路偏好和直接追击导航网格。
 func _rebuild_navigation_grid() -> void:
-	_navigation_grid = AStarGrid2D.new()
 	_navigation_grid_size = Vector2i(
 		int(ceil(MAP_SIZE.x / float(NAVIGATION_CELL_SIZE))),
 		int(ceil(MAP_SIZE.y / float(NAVIGATION_CELL_SIZE)))
 	)
-	_navigation_grid.region = Rect2i(Vector2i.ZERO, _navigation_grid_size)
-	_navigation_grid.cell_size = Vector2(NAVIGATION_CELL_SIZE, NAVIGATION_CELL_SIZE)
-	_navigation_grid.offset = Vector2(float(NAVIGATION_CELL_SIZE) * 0.5, float(NAVIGATION_CELL_SIZE) * 0.5)
-	_navigation_grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_AT_LEAST_ONE_WALKABLE
-	_navigation_grid.update()
+	_navigation_grid = _create_enemy_navigation_grid(true)
+	_direct_navigation_grid = _create_enemy_navigation_grid(false)
+
+
+# 创建一张敌人导航网格，可选择是否用道路权重。
+func _create_enemy_navigation_grid(prefer_roads: bool) -> AStarGrid2D:
+	var grid: AStarGrid2D = AStarGrid2D.new()
+	grid.region = Rect2i(Vector2i.ZERO, _navigation_grid_size)
+	grid.cell_size = Vector2(NAVIGATION_CELL_SIZE, NAVIGATION_CELL_SIZE)
+	grid.offset = Vector2(float(NAVIGATION_CELL_SIZE) * 0.5, float(NAVIGATION_CELL_SIZE) * 0.5)
+	grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_AT_LEAST_ONE_WALKABLE
+	grid.update()
 	for y in range(_navigation_grid_size.y):
 		for x in range(_navigation_grid_size.x):
 			var cell: Vector2i = Vector2i(x, y)
 			var world_point: Vector2 = _nav_cell_to_world(cell)
-			_navigation_grid.set_point_weight_scale(cell, _get_navigation_weight(world_point))
-	for rect in _obstacle_rects:
-		_mark_nav_rect_solid(rect.grow(10.0))
+			if not _is_on_road_corridor(world_point, 0.0, ROAD_WALKABLE_HALF_WIDTH + 24.0):
+				grid.set_point_solid(cell, true)
+				continue
+			grid.set_point_weight_scale(cell, _get_navigation_weight(world_point) if prefer_roads else 1.0)
+	return grid
 
 
-# 给敌人提供一条带避障和道路偏好的导航路径。
-func _get_enemy_navigation_path(start: Vector2, target: Vector2) -> PackedVector2Array:
-	if _navigation_grid == null:
+# 给敌人提供一条带避障的导航路径，默认推房子时更偏道路。
+func _get_enemy_navigation_path(start: Vector2, target: Vector2, prefer_roads: bool = true) -> PackedVector2Array:
+	var grid: AStarGrid2D = _navigation_grid if prefer_roads else _direct_navigation_grid
+	if grid == null:
 		return PackedVector2Array([target])
-	var start_cell: Vector2i = _find_nearest_walkable_nav_cell(_world_to_nav_cell(start), 3)
-	var target_cell: Vector2i = _find_nearest_walkable_nav_cell(_world_to_nav_cell(target), 6)
+	var start_cell: Vector2i = _find_nearest_walkable_nav_cell(_world_to_nav_cell(start), 8, grid)
+	var target_cell: Vector2i = _find_nearest_walkable_nav_cell(_world_to_nav_cell(target), 10, grid)
 	if not _is_nav_cell_in_bounds(start_cell) or not _is_nav_cell_in_bounds(target_cell):
 		return PackedVector2Array([target])
-	var id_path: Array = _navigation_grid.get_id_path(start_cell, target_cell)
+	var id_path: Array = grid.get_id_path(start_cell, target_cell)
+	if id_path.is_empty() and prefer_roads and _direct_navigation_grid != null:
+		start_cell = _find_nearest_walkable_nav_cell(_world_to_nav_cell(start), 8, _direct_navigation_grid)
+		target_cell = _find_nearest_walkable_nav_cell(_world_to_nav_cell(target), 10, _direct_navigation_grid)
+		if _is_nav_cell_in_bounds(start_cell) and _is_nav_cell_in_bounds(target_cell):
+			id_path = _direct_navigation_grid.get_id_path(start_cell, target_cell)
+			grid = _direct_navigation_grid
 	if id_path.is_empty():
 		return PackedVector2Array([target])
 	var path_points: PackedVector2Array = PackedVector2Array()
@@ -1034,27 +1497,14 @@ func _get_enemy_navigation_path(start: Vector2, target: Vector2) -> PackedVector
 	return path_points
 
 
-# 把障碍占地覆盖到导航网格里，防止敌人继续穿树。
-func _mark_nav_rect_solid(rect: Rect2) -> void:
-	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
-		return
-	var min_cell: Vector2i = _world_to_nav_cell(rect.position)
-	var max_cell: Vector2i = _world_to_nav_cell(rect.position + rect.size)
-	for y in range(min_cell.y, max_cell.y + 1):
-		for x in range(min_cell.x, max_cell.x + 1):
-			var cell: Vector2i = Vector2i(x, y)
-			if _is_nav_cell_in_bounds(cell):
-				_navigation_grid.set_point_solid(cell, true)
-
-
 # 依据道路距离给导航格子设置权重，让怪物更倾向沿路推进。
 func _get_navigation_weight(world_point: Vector2) -> float:
 	var best_distance: float = INF
 	for path in _get_road_paths():
 		best_distance = minf(best_distance, _distance_to_polyline(world_point, path))
-	if best_distance <= 108.0:
+	if best_distance <= ROAD_PLACEMENT_HALF_WIDTH * 0.48:
 		return ROAD_NAV_WEIGHT
-	if best_distance <= 196.0:
+	if best_distance <= ROAD_PLACEMENT_HALF_WIDTH:
 		return ROAD_SHOULDER_NAV_WEIGHT
 	return FOREST_NAV_WEIGHT
 
@@ -1081,10 +1531,13 @@ func _is_nav_cell_in_bounds(cell: Vector2i) -> bool:
 
 
 # 如果目标格正好落在障碍里，就就近找一个可走格子兜底。
-func _find_nearest_walkable_nav_cell(origin: Vector2i, max_radius: int) -> Vector2i:
+func _find_nearest_walkable_nav_cell(origin: Vector2i, max_radius: int, grid: AStarGrid2D = null) -> Vector2i:
+	var active_grid: AStarGrid2D = grid if grid != null else _navigation_grid
+	if active_grid == null:
+		return Vector2i(-1, -1)
 	if not _is_nav_cell_in_bounds(origin):
 		return Vector2i(-1, -1)
-	if not _navigation_grid.is_point_solid(origin):
+	if not active_grid.is_point_solid(origin):
 		return origin
 	for radius in range(1, max_radius + 1):
 		for y in range(origin.y - radius, origin.y + radius + 1):
@@ -1092,7 +1545,7 @@ func _find_nearest_walkable_nav_cell(origin: Vector2i, max_radius: int) -> Vecto
 				var cell: Vector2i = Vector2i(x, y)
 				if not _is_nav_cell_in_bounds(cell):
 					continue
-				if _navigation_grid.is_point_solid(cell):
+				if active_grid.is_point_solid(cell):
 					continue
 				return cell
 	return Vector2i(-1, -1)
@@ -1105,34 +1558,10 @@ func _get_game_audio() -> Node:
 	return get_tree().root.get_node_or_null("GameAudio")
 
 
-# 判断一个矩形是否与已有障碍占地重叠。
-func _rect_overlaps_any(rect: Rect2) -> bool:
-	for existing in _obstacle_rects:
-		if rect.intersects(existing):
-			return true
-	return false
-
-
-# 返回障碍和树林生成时需要避开的保留区，包含道路。
-func _is_reserved_map_region(point: Vector2, radius: float) -> bool:
-	if point.x < radius or point.y < radius or point.x > MAP_SIZE.x - radius or point.y > MAP_SIZE.y - radius:
-		return true
-	if point.distance_to(HOUSE_POSITION) < 240.0 + radius:
-		return true
-	if point.distance_to(PLAYER_START) < 260.0 + radius:
-		return true
-	for spawn_point in _get_spawn_points():
-		if point.distance_to(spawn_point) < 260.0 + radius:
-			return true
-	for path in _get_road_paths():
-		if _distance_to_polyline(point, path) < 126.0 + radius:
-			return true
-	return false
-
-
 # 返回锚点放置时要避开的区域，不再把道路视为禁放区。
 func _is_anchor_placement_blocked_region(point: Vector2, radius: float) -> bool:
-	if point.x < radius or point.y < radius or point.x > MAP_SIZE.x - radius or point.y > MAP_SIZE.y - radius:
+	var placement_bounds: Rect2 = _get_current_map_rect().grow(-radius)
+	if placement_bounds.size.x <= 0.0 or placement_bounds.size.y <= 0.0 or not placement_bounds.has_point(point):
 		return true
 	if point.distance_to(HOUSE_POSITION) < 240.0 + radius:
 		return true
@@ -1144,73 +1573,152 @@ func _is_anchor_placement_blocked_region(point: Vector2, radius: float) -> bool:
 	return false
 
 
-# 构建带种子的噪声采样器。
-func _make_noise(noise_seed: int, frequency: float) -> FastNoiseLite:
-	var noise: FastNoiseLite = FastNoiseLite.new()
-	noise.seed = noise_seed
-	noise.frequency = frequency
-	noise.fractal_octaves = 3
-	noise.fractal_lacunarity = 2.1
-	noise.fractal_gain = 0.5
-	return noise
+# 返回当前地图贴图在世界中的实际矩形，用作放置区和安全边界的来源。
+func _get_current_map_rect() -> Rect2:
+	if map_background != null and map_background.texture != null:
+		var texture_size: Vector2 = map_background.texture.get_size() * map_background.global_scale.abs()
+		var top_left: Vector2 = map_background.global_position - texture_size * 0.5
+		return Rect2(top_left, texture_size)
+	return Rect2(Vector2.ZERO, MAP_SIZE)
 
 
-# 从密度噪声里生成排序后的障碍候选点。
-func _build_obstacle_candidates(noise: FastNoiseLite) -> Array[Dictionary]:
-	var candidates: Array[Dictionary] = []
-	var y: float = 180.0
-	while y <= MAP_SIZE.y - 180.0:
-		var x: float = 180.0
-		while x <= MAP_SIZE.x - 180.0:
-			var score: float = noise.get_noise_2d(x, y)
-			if score >= obstacle_noise_threshold:
-				var jitter: Vector2 = Vector2(
-					_rng.randf_range(-obstacle_cell_size * 0.32, obstacle_cell_size * 0.32),
-					_rng.randf_range(-obstacle_cell_size * 0.32, obstacle_cell_size * 0.32)
-				)
-				candidates.append({"center": Vector2(x, y) + jitter, "score": score})
-			x += obstacle_cell_size
-		y += obstacle_cell_size
-	candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		return float(a["score"]) > float(b["score"])
+# 根据场景里已经摆好的围墙碰撞，从玩家初始点泛洪出当前可放置区域。
+func _rebuild_anchor_placement_area() -> void:
+	_anchor_placement_reachable_cells.clear()
+	var map_rect: Rect2 = _get_current_map_rect()
+	if map_rect.size.x <= 0.0 or map_rect.size.y <= 0.0:
+		push_error("SurvivorGame: invalid map bounds for anchor placement")
+		return
+	_anchor_placement_origin = map_rect.position
+	_anchor_placement_grid_size = Vector2i(
+		maxi(1, int(ceil(map_rect.size.x / float(ANCHOR_PLACEMENT_GRID_SIZE)))),
+		maxi(1, int(ceil(map_rect.size.y / float(ANCHOR_PLACEMENT_GRID_SIZE))))
 	)
-	return candidates
+	var start_cell: Vector2i = _anchor_world_to_cell(PLAYER_START)
+	if not _is_anchor_cell_in_bounds(start_cell):
+		push_error("SurvivorGame: player start is outside current anchor placement map bounds")
+		return
+	start_cell = _find_nearest_open_anchor_cell(start_cell, 8)
+	if not _is_anchor_cell_in_bounds(start_cell):
+		push_error("SurvivorGame: no open anchor placement cell near player start")
+		return
+	var queue: Array[Vector2i] = [start_cell]
+	_anchor_placement_reachable_cells[start_cell] = true
+	var directions: Array[Vector2i] = [
+		Vector2i.RIGHT,
+		Vector2i.LEFT,
+		Vector2i.DOWN,
+		Vector2i.UP,
+	]
+	while not queue.is_empty():
+		var cell: Vector2i = queue.pop_front()
+		for direction in directions:
+			var next_cell: Vector2i = cell + direction
+			if _anchor_placement_reachable_cells.has(next_cell):
+				continue
+			if not _is_anchor_cell_in_bounds(next_cell) or _is_anchor_cell_blocked(next_cell):
+				continue
+			_anchor_placement_reachable_cells[next_cell] = true
+			queue.append(next_cell)
 
 
-# 根据细节噪声挑选障碍尺寸。
-func _pick_obstacle_size(detail: float) -> Vector2:
-	if detail > 0.22:
-		return Vector2(_rng.randf_range(54.0, 88.0), _rng.randf_range(146.0, 260.0))
-	if detail < -0.24:
-		return Vector2(_rng.randf_range(128.0, 220.0), _rng.randf_range(92.0, 178.0))
-	return Vector2(_rng.randf_range(88.0, 178.0), _rng.randf_range(78.0, 170.0))
+# 判断一个世界点是否落在当前围墙内连通的锚点放置区域。
+func _is_in_anchor_placement_area(point: Vector2) -> bool:
+	if _anchor_placement_reachable_cells.is_empty():
+		return _get_current_map_rect().has_point(point)
+	var cell: Vector2i = _anchor_world_to_cell(point)
+	return _anchor_placement_reachable_cells.has(cell)
 
 
-# 根据噪声挑选占位障碍颜色。
-func _pick_obstacle_color(detail: float) -> Color:
-	if detail > 0.18:
-		return Color(0.12, 0.36, 0.17, 1.0)
-	if detail < -0.20:
-		return Color(0.38, 0.38, 0.35, 1.0)
-	return Color(0.18, 0.43, 0.20, 1.0)
+# 运行时检查当前候选点是否压到围墙、房子、已有塔等世界碰撞。
+func _is_anchor_placement_shape_blocked(point: Vector2) -> bool:
+	var shape := CircleShape2D.new()
+	shape.radius = ANCHOR_PLACEMENT_GRID_PROBE_RADIUS
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0.0, point)
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+	query.collision_mask = 4
+	var hits: Array[Dictionary] = get_world_2d().direct_space_state.intersect_shape(query, 12)
+	for hit in hits:
+		var collider: Object = hit.get("collider")
+		if collider == _house or (collider is Node and (collider as Node).is_in_group("anchors")):
+			return true
+		if collider is Node:
+			var node: Node = collider as Node
+			if node.is_ancestor_of(placement_preview) or node == placement_preview:
+				continue
+		return true
+	return false
 
 
-# 返回地图草图上的三个固定出生点。
+# 把世界点转换为放置区网格格子。
+func _anchor_world_to_cell(point: Vector2) -> Vector2i:
+	var local: Vector2 = point - _anchor_placement_origin
+	return Vector2i(
+		int(floor(local.x / float(ANCHOR_PLACEMENT_GRID_SIZE))),
+		int(floor(local.y / float(ANCHOR_PLACEMENT_GRID_SIZE)))
+	)
+
+
+# 把放置区格子转换为世界中心点。
+func _anchor_cell_to_world(cell: Vector2i) -> Vector2:
+	return _anchor_placement_origin + Vector2(
+		float(cell.x * ANCHOR_PLACEMENT_GRID_SIZE) + float(ANCHOR_PLACEMENT_GRID_SIZE) * 0.5,
+		float(cell.y * ANCHOR_PLACEMENT_GRID_SIZE) + float(ANCHOR_PLACEMENT_GRID_SIZE) * 0.5
+	)
+
+
+# 判断放置区格子是否还在当前地图贴图矩形内。
+func _is_anchor_cell_in_bounds(cell: Vector2i) -> bool:
+	return cell.x >= 0 and cell.y >= 0 and cell.x < _anchor_placement_grid_size.x and cell.y < _anchor_placement_grid_size.y
+
+
+# 判断放置区格子中心是否被场景围墙或障碍碰撞占住。
+func _is_anchor_cell_blocked(cell: Vector2i) -> bool:
+	return _is_anchor_placement_shape_blocked(_anchor_cell_to_world(cell))
+
+
+# 起点落在碰撞边缘时，向周围找一个最近的开放格子。
+func _find_nearest_open_anchor_cell(origin: Vector2i, max_radius: int) -> Vector2i:
+	if _is_anchor_cell_in_bounds(origin) and not _is_anchor_cell_blocked(origin):
+		return origin
+	for radius in range(1, max_radius + 1):
+		for y in range(origin.y - radius, origin.y + radius + 1):
+			for x in range(origin.x - radius, origin.x + radius + 1):
+				var cell: Vector2i = Vector2i(x, y)
+				if not _is_anchor_cell_in_bounds(cell):
+					continue
+				if not _is_anchor_cell_blocked(cell):
+					return cell
+	return Vector2i(-1, -1)
+
+
+# 返回地图草图上的两个固定出生点。
 func _get_spawn_points() -> Array[Vector2]:
 	return [
-		Vector2(5420.0, 1700.0),
-		Vector2(2980.0, 3040.0),
-		Vector2(3560.0, 3040.0),
+		Vector2(5480.0, 1820.0),
+		Vector2(3130.0, 3030.0),
 	]
 
 
 # 返回道路折线，用于绘制和道路保留区计算。
 func _get_road_paths() -> Array[PackedVector2Array]:
 	return [
-		PackedVector2Array([Vector2(420.0, 1640.0), Vector2(1580.0, 1640.0), Vector2(2780.0, 1640.0), Vector2(3960.0, 1640.0), Vector2(5420.0, 1700.0)]),
-		PackedVector2Array([Vector2(2980.0, 3040.0), Vector2(2920.0, 2500.0), Vector2(2860.0, 2100.0), Vector2(2780.0, 1640.0)]),
-		PackedVector2Array([Vector2(3560.0, 3040.0), Vector2(3420.0, 2460.0), Vector2(3240.0, 2040.0), Vector2(2780.0, 1640.0)]),
+		PackedVector2Array([Vector2(520.0, 1640.0), Vector2(1180.0, 1620.0), Vector2(1940.0, 1580.0), Vector2(2720.0, 1510.0), Vector2(3480.0, 1420.0), Vector2(4240.0, 1540.0), Vector2(4920.0, 1730.0), Vector2(5480.0, 1820.0)]),
+		PackedVector2Array([Vector2(2720.0, 1510.0), Vector2(2810.0, 1780.0), Vector2(2980.0, 2150.0), Vector2(3070.0, 2580.0), Vector2(3130.0, 3030.0)]),
 	]
+
+
+# 判断给定点是否位于地图道路走廊内。
+func _is_on_road_corridor(point: Vector2, radius: float = 0.0, half_width: float = ROAD_WALKABLE_HALF_WIDTH) -> bool:
+	if point.x < radius or point.y < radius or point.x > MAP_SIZE.x - radius or point.y > MAP_SIZE.y - radius:
+		return false
+	for path in _get_road_paths():
+		if _distance_to_polyline(point, path) <= maxf(12.0, half_width - radius):
+			return true
+	return false
 
 
 # 计算点到折线的最短距离。
@@ -1233,7 +1741,9 @@ func _distance_to_segment(point: Vector2, start: Vector2, finish: Vector2) -> fl
 
 # 只有详情面板或升级面板开着时才维持慢速时间。
 func _restore_slow_time_if_clear() -> void:
-	if anchor_detail_panel.visible or level_up_panel.visible:
+	var anchor_open: bool = bool(anchor_detail_panel.call("is_open")) if anchor_detail_panel.has_method("is_open") else anchor_detail_panel.visible
+	var house_open: bool = bool(house_detail_panel.call("is_open")) if house_detail_panel.has_method("is_open") else house_detail_panel.visible
+	if anchor_open or house_open or level_up_panel.visible:
 		Engine.time_scale = SLOW_TIME_SCALE
 	else:
 		Engine.time_scale = 1.0
@@ -1243,7 +1753,7 @@ func _restore_slow_time_if_clear() -> void:
 func _update_hud() -> void:
 	gold_label.text = "金币 %d" % _get_gold()
 	var total_waves: int = _get_total_waves()
-	wave_label.text = "第 %d/%d 波  击杀 %d" % [mini(_wave_index + 1, total_waves), total_waves, _kills]
+	wave_label.text = _build_wave_label_text(total_waves)
 	if is_instance_valid(_player) and hp_orb != null and hp_orb.has_method("set_meter"):
 		var current_hp: float = _player.get("current_hp")
 		var max_hp: float = _player.get("max_hp")
@@ -1277,6 +1787,29 @@ func _update_hud() -> void:
 	level_up_button.text = "升级 x%d" % int(_player.get("pending_level_ups")) if is_instance_valid(_player) and int(_player.get("pending_level_ups")) > 0 else "升级"
 	level_up_button.visible = _pending_level_up and not level_up_panel.visible
 	_refresh_skill_summary()
+
+
+# 按当前状态组合波次标签，保留现有 HUD 位置但补足波名和阶段信息。
+func _build_wave_label_text(total_waves: int) -> String:
+	var current_wave: int = mini(_wave_index + 1, total_waves)
+	var wave_data: Dictionary = WAVE_TABLE.call("get_wave", clampi(_wave_index, 0, total_waves - 1))
+	var wave_name: String = str(wave_data.get("name", "第 %d 波" % current_wave))
+	var state_text: String = ""
+	match _state:
+		GameState.PREPARE:
+			state_text = "准备"
+		GameState.COMBAT:
+			state_text = "战斗"
+		GameState.WAVE_CLEAR:
+			state_text = "清场"
+		GameState.VICTORY:
+			state_text = "胜利"
+		GameState.FAILURE:
+			state_text = "失败"
+		_:
+			state_text = ""
+	var boss_text: String = "  Boss" if bool(wave_data.get("boss_wave", false)) and not wave_name.to_lower().contains("boss") else ""
+	return "%s%s  %d/%d  %s  击杀 %d" % [wave_name, boss_text, current_wave, total_waves, state_text, _kills]
 
 
 # 按玩家剩余血量更新屏幕边缘的红色危险光效。
@@ -1332,6 +1865,32 @@ func _get_stamina_growth_level() -> int:
 	return int(PlayerModule.instance.custom.get("stamina_level", 0))
 
 
+# 从存档自定义数据里读取移动速度成长等级。
+func _get_move_speed_growth_level() -> int:
+	if PlayerModule.instance == null:
+		return 0
+	return int(PlayerModule.instance.custom.get("move_speed_level", 0))
+
+
+# 从存档自定义数据里读取攻击速度成长等级。
+func _get_attack_speed_growth_level() -> int:
+	if PlayerModule.instance == null:
+		return 0
+	return int(PlayerModule.instance.custom.get("attack_speed_level", 0))
+
+
+# 从存档自定义数据里读取初始金币成长等级。
+func _get_start_gold_growth_level() -> int:
+	if PlayerModule.instance == null:
+		return 0
+	return int(PlayerModule.instance.custom.get("start_gold_level", 0))
+
+
+# 计算本局开局金币，局外成长只影响本局起始值。
+func _get_run_start_gold() -> int:
+	return RUN_START_GOLD + maxi(0, _get_start_gold_growth_level()) * START_GOLD_PER_LEVEL
+
+
 # 重置存档血量，避免失败后下次进入直接残血。
 func _reset_saved_health_for_next_run() -> void:
 	if PlayerModule.instance == null:
@@ -1339,11 +1898,63 @@ func _reset_saved_health_for_next_run() -> void:
 	PlayerModule.instance.hp = PlayerModule.instance.max_hp
 
 
-# 返回当前存档槽中的金币数量。
+# 返回当前局内金币数量。
 func _get_gold() -> int:
-	if PlayerModule.instance == null:
+	return _run_gold
+
+
+# 尝试消耗本局金币。
+func _spend_run_gold(amount: int) -> bool:
+	if amount <= 0:
+		return true
+	if _run_gold < amount:
+		return false
+	_run_gold -= amount
+	_refresh_hotbar()
+	if house_detail_panel.visible:
+		house_detail_panel.call("refresh_current_house", _get_gold())
+	_update_hud()
+	return true
+
+
+# 增加本局金币。
+func _add_run_gold(amount: int) -> void:
+	if amount <= 0:
+		return
+	_run_gold += amount
+	_refresh_hotbar()
+	if house_detail_panel.visible:
+		house_detail_panel.call("refresh_current_house", _get_gold())
+	_update_hud()
+
+
+# 判断热栏血瓶当前是否可用。
+func _can_use_heal_potion() -> bool:
+	if _state == GameState.FAILURE or not is_instance_valid(_player):
+		return false
+	if _get_gold() < HEAL_POTION_COST:
+		return false
+	return true
+
+
+# 把剩余本局金币按比例结算成局外成长点，并防止重复结算。
+func _settle_growth_points_once() -> int:
+	if _growth_settled or PlayerModule.instance == null:
 		return 0
-	return PlayerModule.instance.gold
+	var gained_points: int = maxi(0, int(floor(float(_run_gold) / float(GROWTH_POINT_DIVISOR))))
+	PlayerModule.instance.custom["growth_points"] = maxi(0, int(PlayerModule.instance.custom.get("growth_points", 0))) + gained_points
+	_growth_settled = true
+	return gained_points
+
+
+# 打开战斗结果页，胜利和失败共用同一套 authored 玻璃面板。
+func _open_result_screen(is_victory: bool, gained_points: int) -> void:
+	if failure_screen == null:
+		return
+	var total_waves: int = _get_total_waves()
+	var cleared_waves: int = total_waves if is_victory else clampi(_wave_index, 0, total_waves)
+	failure_screen.call("set_result", is_victory, _kills, _get_gold(), gained_points, cleared_waves, total_waves)
+	failure_screen.call("open_modal")
 
 
 # 如果 SceneManager 可用，则播放入场淡入。

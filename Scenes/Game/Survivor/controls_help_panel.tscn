@@ -1,0 +1,289 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Game/Survivor/controls_help_panel.gd" id="1_help"]
+[ext_resource type="Shader" uid="uid://dtcjm8c7boghc" path="res://reousrces/shader/blur.gdshader" id="2_blur"]
+[ext_resource type="PackedScene" uid="uid://c8eisrp4kcf52" path="res://Scenes/UI/Menu/setting_ambient_vfx.tscn" id="3_ambient"]
+[ext_resource type="PackedScene" uid="uid://uacp5p6j6svs" path="res://Scenes/UI/Menu/setting_local_light_vfx.tscn" id="4_light"]
+[ext_resource type="PackedScene" uid="uid://dssid7iw4aqb6" path="res://Scenes/UIorgan/ShaderButton/shader_button.tscn" id="5_button"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_help_blur"]
+shader = ExtResource("2_blur")
+shader_parameter/strength = 3.3
+shader_parameter/mix_percentage = 0.3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_help_frame"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.98, 0.72, 0.36, 0.26)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_key_cap"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+bg_color = Color(0.06, 0.075, 0.08, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.86, 0.56, 0.42)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="ControlsHelpPanel" type="Container"]
+process_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_help")
+color = Color(0, 0, 0, 0.68)
+close_modal_on_clicked = false
+modal_offset_unit = 2
+modal_offset = Vector2(0, 0.08)
+
+[node name="PanelRoot" type="Control" parent="."]
+layout_mode = 2
+
+[node name="GlassBlur" type="ColorRect" parent="PanelRoot"]
+material = SubResource("ShaderMaterial_help_blur")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.01, 0.008, 0.008, 0.54)
+
+[node name="GlassFrame" type="Panel" parent="PanelRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_help_frame")
+
+[node name="SettingAmbientVFX" parent="PanelRoot" instance=ExtResource("3_ambient")]
+layout_mode = 1
+
+[node name="SettingLocalLightVFX" parent="PanelRoot" instance=ExtResource("4_light")]
+layout_mode = 1
+
+[node name="OuterMargin" type="MarginContainer" parent="PanelRoot"]
+layout_mode = 1
+offset_right = 1915.0
+offset_bottom = 1084.0
+theme_override_constants/margin_left = 188
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 188
+
+[node name="ShellPanel" type="Control" parent="PanelRoot/OuterMargin"]
+custom_minimum_size = Vector2(760, 520)
+clip_contents = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ShellMargin" type="MarginContainer" parent="PanelRoot/OuterMargin/ShellPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 34
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="MainVBox" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.42, 1)
+theme_override_font_sizes/font_size = 46
+text = "键位说明"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+layout_mode = 2
+
+[node name="IntroLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.91, 0.84, 0.95)
+theme_override_font_sizes/font_size = 24
+text = "第一次进入守护战时显示一次。之后可在设置里查看和修改按键。"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Body" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+theme_override_constants/separation = 14
+
+[node name="MoveRow" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 18
+
+[node name="Key" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/MoveRow"]
+custom_minimum_size = Vector2(190, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.56, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_key_cap")
+text = "W A S D"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/MoveRow"]
+custom_minimum_size = Vector2(390, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 0.96)
+theme_override_font_sizes/font_size = 24
+text = "移动魔女"
+vertical_alignment = 1
+
+[node name="SprintRow" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 18
+
+[node name="Key" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/SprintRow"]
+custom_minimum_size = Vector2(190, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.56, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_key_cap")
+text = "Shift"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/SprintRow"]
+custom_minimum_size = Vector2(390, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 0.96)
+theme_override_font_sizes/font_size = 24
+text = "消耗体力冲刺"
+vertical_alignment = 1
+
+[node name="ClickRow" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 18
+
+[node name="Key" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/ClickRow"]
+custom_minimum_size = Vector2(190, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.56, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_key_cap")
+text = "鼠标左键"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/ClickRow"]
+custom_minimum_size = Vector2(390, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 0.96)
+theme_override_font_sizes/font_size = 24
+text = "选择、放置或查看目标"
+vertical_alignment = 1
+
+[node name="CancelRow" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 18
+
+[node name="Key" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/CancelRow"]
+custom_minimum_size = Vector2(190, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.56, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_key_cap")
+text = "鼠标右键"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/CancelRow"]
+custom_minimum_size = Vector2(390, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 0.96)
+theme_override_font_sizes/font_size = 24
+text = "取消当前放置"
+vertical_alignment = 1
+
+[node name="PauseRow" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 18
+
+[node name="Key" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/PauseRow"]
+custom_minimum_size = Vector2(190, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.56, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_key_cap")
+text = "Esc"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/PauseRow"]
+custom_minimum_size = Vector2(390, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 0.96)
+theme_override_font_sizes/font_size = 24
+text = "暂停游戏或关闭当前面板"
+vertical_alignment = 1
+
+[node name="StartRow" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 18
+
+[node name="Key" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/StartRow"]
+custom_minimum_size = Vector2(190, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.56, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_key_cap")
+text = "开始战斗"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/StartRow"]
+custom_minimum_size = Vector2(390, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 0.96)
+theme_override_font_sizes/font_size = 24
+text = "准备完成后从底部热栏开波"
+vertical_alignment = 1
+
+[node name="ButtonRow" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="UnderstoodButton" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/ButtonRow" instance=ExtResource("5_button")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "知道了"

@@ -9,12 +9,15 @@ signal recycle_requested(anchor: Node)
 const AnchorDb = preload("res://Scenes/Game/Survivor/anchor_database.gd")
 
 @onready var close_button: Button = $Panel/Margin/VBox/Header/CloseButton
+@onready var panel: PanelContainer = $Panel
 @onready var title_label: Label = $Panel/Margin/VBox/Header/TitleLabel
 @onready var body_label: Label = $Panel/Margin/VBox/BodyLabel
 @onready var upgrade_button: Button = $Panel/Margin/VBox/ActionSection/UpgradeButton
 @onready var recycle_button: Button = $Panel/Margin/VBox/ActionSection/RecycleButton
 
 var _current_anchor: Node
+var _is_open: bool = false
+var _panel_tween: Tween
 
 
 # 连接详情面板按钮并默认隐藏。
@@ -23,6 +26,8 @@ func _ready() -> void:
 	close_button.pressed.connect(closed.emit)
 	upgrade_button.pressed.connect(_on_upgrade_button_pressed)
 	recycle_button.pressed.connect(_on_recycle_button_pressed)
+	panel.pivot_offset = Vector2.ZERO
+	panel.modulate.a = 0.0
 	hide()
 
 
@@ -32,13 +37,15 @@ func open_for_anchor(anchor: Node) -> void:
 		return
 	_current_anchor = anchor
 	_refresh_content()
-	show()
+	_is_open = true
+	_play_open_animation()
 
 
 # 关闭详情面板。
 func close_panel() -> void:
 	_current_anchor = null
-	hide()
+	_is_open = false
+	_play_close_animation()
 
 
 # 升级或金币变化后，重刷当前锚点数据。
@@ -47,6 +54,48 @@ func refresh_current_anchor() -> void:
 		close_panel()
 		return
 	_refresh_content()
+
+
+# 返回逻辑打开状态，关闭动画期间不继续维持慢速时间。
+func is_open() -> bool:
+	return _is_open
+
+
+# 播放忽略 time_scale 的滑入动画。
+func _play_open_animation() -> void:
+	show()
+	_kill_panel_tween()
+	panel.position.x = 72.0
+	panel.modulate.a = 0.0
+	_panel_tween = create_tween()
+	_panel_tween.set_ignore_time_scale(true)
+	_panel_tween.set_parallel(true)
+	_panel_tween.tween_property(panel, "position:x", 0.0, 0.16).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_panel_tween.tween_property(panel, "modulate:a", 1.0, 0.12)
+
+
+# 播放忽略 time_scale 的滑出动画，结束后再隐藏节点。
+func _play_close_animation() -> void:
+	_kill_panel_tween()
+	_panel_tween = create_tween()
+	_panel_tween.set_ignore_time_scale(true)
+	_panel_tween.set_parallel(true)
+	_panel_tween.tween_property(panel, "position:x", 72.0, 0.14).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	_panel_tween.tween_property(panel, "modulate:a", 0.0, 0.1)
+	_panel_tween.finished.connect(_hide_after_close_animation)
+
+
+# 停掉上一段面板动画，避免快速点击时 tween 叠加。
+func _kill_panel_tween() -> void:
+	if is_instance_valid(_panel_tween):
+		_panel_tween.kill()
+
+
+# 关闭动画结束时隐藏节点，若中途重开则不隐藏。
+func _hide_after_close_animation() -> void:
+	if _is_open:
+		return
+	hide()
 
 
 # 发出一次升级请求。

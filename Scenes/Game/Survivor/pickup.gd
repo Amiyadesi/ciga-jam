@@ -5,6 +5,7 @@ extends Area2D
 signal collected(kind: String, amount: int)
 
 @export var pickup_radius: float = 80.0
+@export var exp_pickup_radius_multiplier: float = 2.0
 @export var fly_speed: float = 620.0
 
 @onready var visual: Polygon2D = $Visual
@@ -26,7 +27,8 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(_target):
 		return
-	if not _is_collecting and global_position.distance_to(_target.global_position) <= pickup_radius:
+	var active_pickup_radius: float = _get_active_pickup_radius()
+	if not _is_collecting and global_position.distance_to(_target.global_position) <= active_pickup_radius:
 		_is_collecting = true
 	if not _is_collecting:
 		return
@@ -43,3 +45,10 @@ func setup(pickup_kind: String, pickup_amount: int, player: Node2D) -> void:
 	_target = player
 	if visual != null:
 		visual.color = Color(1.0, 0.82, 0.26, 1.0) if kind == "gold" else Color(0.26, 1.0, 0.45, 1.0)
+
+
+# 经验球按需求扩大自动吸附范围，金币保持原本距离。
+func _get_active_pickup_radius() -> float:
+	if kind == "exp":
+		return pickup_radius * exp_pickup_radius_multiplier
+	return pickup_radius

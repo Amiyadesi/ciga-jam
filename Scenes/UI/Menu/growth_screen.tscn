@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://Scenes/UI/Menu/growth_screen.gd" id="1_growth"]
 [ext_resource type="Shader" uid="uid://dtcjm8c7boghc" path="res://reousrces/shader/blur.gdshader" id="2_blur"]
@@ -18,6 +18,22 @@ border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.98, 0.72, 0.36, 0.26)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_growth_row"]
+content_margin_left = 18.0
+content_margin_top = 12.0
+content_margin_right = 18.0
+content_margin_bottom = 12.0
+bg_color = Color(0.02, 0.024, 0.03, 0.46)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.98, 0.72, 0.36, 0.18)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="GrowthScreen" type="Container"]
 anchors_preset = 15
@@ -111,57 +127,182 @@ custom_minimum_size = Vector2(0, 360)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 22
+theme_override_constants/separation = 16
 
 [node name="GoldLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.88, 0.36, 1)
 theme_override_font_sizes/font_size = 28
-text = "金币  0"
+text = "成长点  0"
 horizontal_alignment = 1
 
-[node name="UpgradeBox" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
-custom_minimum_size = Vector2(0, 180)
+[node name="UpgradeList" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+size_flags_vertical = 3
+theme_override_constants/separation = 10
 
-[node name="LevelLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeBox"]
-unique_name_in_owner = true
+[node name="StaminaRow" type="PanelContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList"]
+custom_minimum_size = Vector2(0, 92)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_growth_row")
+
+[node name="RowBox" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StaminaRow"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TextBox" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StaminaRow/RowBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LevelLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StaminaRow/RowBox/TextBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.96, 0.93, 0.82, 1)
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 24
 text = "体能强化  Lv.0/5"
-horizontal_alignment = 1
 
-[node name="EffectLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeBox"]
-unique_name_in_owner = true
+[node name="EffectLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StaminaRow/RowBox/TextBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.84, 0.92, 0.96, 0.96)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 18
 text = "最大体力 +0"
-horizontal_alignment = 1
 
-[node name="CostLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeBox"]
-unique_name_in_owner = true
+[node name="CostLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StaminaRow/RowBox/TextBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.82, 0.78, 0.68, 0.95)
+theme_override_font_sizes/font_size = 18
+text = "需要成长点 5"
+
+[node name="BuyButton" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StaminaRow/RowBox" instance=ExtResource("5_button")]
+custom_minimum_size = Vector2(126, 58)
+layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "需要金币 5"
-horizontal_alignment = 1
+text = "购买"
+
+[node name="MoveSpeedRow" type="PanelContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList"]
+custom_minimum_size = Vector2(0, 92)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_growth_row")
+
+[node name="RowBox" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/MoveSpeedRow"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TextBox" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/MoveSpeedRow/RowBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LevelLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/MoveSpeedRow/RowBox/TextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 0.82, 1)
+theme_override_font_sizes/font_size = 24
+text = "疾行训练  Lv.0/5"
+
+[node name="EffectLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/MoveSpeedRow/RowBox/TextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.84, 0.92, 0.96, 0.96)
+theme_override_font_sizes/font_size = 18
+text = "移动速度 +0%"
+
+[node name="CostLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/MoveSpeedRow/RowBox/TextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.78, 0.68, 0.95)
+theme_override_font_sizes/font_size = 18
+text = "需要成长点 5"
+
+[node name="BuyButton" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/MoveSpeedRow/RowBox" instance=ExtResource("5_button")]
+custom_minimum_size = Vector2(126, 58)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "购买"
+
+[node name="AttackSpeedRow" type="PanelContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList"]
+custom_minimum_size = Vector2(0, 92)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_growth_row")
+
+[node name="RowBox" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/AttackSpeedRow"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TextBox" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/AttackSpeedRow/RowBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LevelLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/AttackSpeedRow/RowBox/TextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 0.82, 1)
+theme_override_font_sizes/font_size = 24
+text = "快速施法  Lv.0/5"
+
+[node name="EffectLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/AttackSpeedRow/RowBox/TextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.84, 0.92, 0.96, 0.96)
+theme_override_font_sizes/font_size = 18
+text = "攻击速度 +0%"
+
+[node name="CostLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/AttackSpeedRow/RowBox/TextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.78, 0.68, 0.95)
+theme_override_font_sizes/font_size = 18
+text = "需要成长点 5"
+
+[node name="BuyButton" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/AttackSpeedRow/RowBox" instance=ExtResource("5_button")]
+custom_minimum_size = Vector2(126, 58)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "购买"
+
+[node name="StartGoldRow" type="PanelContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList"]
+custom_minimum_size = Vector2(0, 92)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_growth_row")
+
+[node name="RowBox" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StartGoldRow"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TextBox" type="VBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StartGoldRow/RowBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LevelLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StartGoldRow/RowBox/TextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 0.82, 1)
+theme_override_font_sizes/font_size = 24
+text = "开局补给  Lv.0/5"
+
+[node name="EffectLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StartGoldRow/RowBox/TextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.84, 0.92, 0.96, 0.96)
+theme_override_font_sizes/font_size = 18
+text = "初始金币 +0"
+
+[node name="CostLabel" type="Label" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StartGoldRow/RowBox/TextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.78, 0.68, 0.95)
+theme_override_font_sizes/font_size = 18
+text = "需要成长点 6"
+
+[node name="BuyButton" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/UpgradeList/StartGoldRow/RowBox" instance=ExtResource("5_button")]
+custom_minimum_size = Vector2(126, 58)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "购买"
 
 [node name="ButtonRow" type="HBoxContainer" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body"]
 layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 42
-
-[node name="BuyButton" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/ButtonRow" instance=ExtResource("5_button")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 64)
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-text = "购买升级"
 
 [node name="ReturnButton" parent="PanelRoot/OuterMargin/ShellPanel/ShellMargin/MainVBox/Body/ButtonRow" instance=ExtResource("5_button")]
 unique_name_in_owner = true

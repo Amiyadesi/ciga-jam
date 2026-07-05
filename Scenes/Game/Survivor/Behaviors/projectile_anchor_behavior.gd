@@ -10,11 +10,20 @@ const BULLET_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/magic_bull
 
 var _anchor: Node
 var _fire_timer: float = 0.0
+var _projectile_modifiers: Dictionary = {}
 
 
 # 在子行为场景实例化后缓存所属锚点。
 func setup(anchor: Node) -> void:
 	_anchor = anchor
+	var params: Dictionary = anchor.get("behavior_params") as Dictionary
+	shot_count = maxi(1, int(params.get("shot_count", shot_count)))
+	spread_offset = float(params.get("spread_offset", spread_offset))
+	projectile_color = params.get("projectile_color", projectile_color) as Color
+	_projectile_modifiers = {
+		"pierce_enabled": bool(params.get("pierce_enabled", false)),
+		"pierce_falloff": clampf(float(params.get("pierce_falloff", 0.0)), 0.0, 0.95),
+	}
 	_fire_timer = 0.0
 
 
@@ -40,12 +49,14 @@ func _fire_at(target: Node2D) -> void:
 		return
 	var damage: float = float(_anchor.get("attack_damage"))
 	for i in range(maxi(1, shot_count)):
+		var projectile_modifiers: Dictionary = _projectile_modifiers.duplicate(true)
+		projectile_modifiers["status_effects"] = _get_anchor_status_effects()
 		var bullet: Area2D = BULLET_SCENE.instantiate() as Area2D
 		parent.add_child(bullet)
 		var centered_index: float = float(i) - float(shot_count - 1) * 0.5
 		var offset: Vector2 = Vector2(0.0, centered_index * spread_offset)
 		var direction: Vector2 = _anchor.global_position.direction_to(target.global_position + offset)
-		bullet.call("setup", _anchor.global_position + offset, direction, damage, projectile_color, _anchor)
+		bullet.call("setup", _anchor.global_position + offset, direction, damage, projectile_color, _anchor, 0.0, 0.0, projectile_modifiers)
 	var game_audio: Node = _anchor.get_tree().root.get_node_or_null("GameAudio") if _anchor != null and _anchor.get_tree() != null else null
 	if game_audio != null:
 		game_audio.call("play_fireball")
@@ -61,3 +72,17 @@ func _resolve_projectile_parent() -> Node:
 		if projectile_root != null:
 			return projectile_root
 	return _anchor.get_parent()
+
+
+# Copies anchor-provided hit effects onto spawned projectiles.
+func _get_anchor_status_effects() -> Array[Dictionary]:
+	if _anchor == null or not _anchor.has_method("get_on_hit_status_effects"):
+		return []
+	var raw_effects: Variant = _anchor.call("get_on_hit_status_effects")
+	var effects: Array[Dictionary] = []
+	if not (raw_effects is Array):
+		return effects
+	for raw_effect in raw_effects as Array:
+		if raw_effect is Dictionary:
+			effects.append((raw_effect as Dictionary).duplicate(true))
+	return effects

@@ -5,6 +5,9 @@ extends Resource
 @export var entries: Dictionary = {}
 @export var hotbar_order: PackedStringArray = PackedStringArray()
 
+const RUNTIME_ATTACK_RADIUS_SCALE: float = 2.0
+const RUNTIME_ATTACK_RADIUS_BONUS: float = 40.0
+
 
 # Returns true when the catalog contains the given anchor id.
 func has_anchor(anchor_id: String) -> bool:
@@ -50,7 +53,12 @@ func get_stats(anchor_id: String, level: int) -> Dictionary:
 	if data == null or not data.has_method("to_runtime_dictionary"):
 		push_error("AnchorCatalog: level %d for '%s' is not AnchorData" % [level, anchor_id])
 		return {}
-	return data.to_runtime_dictionary(index + 1, levels.size())
+	var runtime: Dictionary = data.to_runtime_dictionary(index + 1, levels.size())
+	var authored_attack_radius: float = float(runtime.get("attack_radius", 0.0))
+	var authored_trigger_radius: float = float(runtime.get("trigger_radius", authored_attack_radius))
+	runtime["attack_radius"] = authored_attack_radius * RUNTIME_ATTACK_RADIUS_SCALE + RUNTIME_ATTACK_RADIUS_BONUS
+	runtime["trigger_radius"] = authored_trigger_radius * RUNTIME_ATTACK_RADIUS_SCALE + RUNTIME_ATTACK_RADIUS_BONUS
+	return runtime
 
 
 # Returns the next level price used for in-world upgrades.

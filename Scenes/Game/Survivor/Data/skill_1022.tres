@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SkillCardData" format=3 uid="uid://bp5w0pqpqcdnm"]
+
+[ext_resource type="Script" uid="uid://nxuvr6gx84ch" path="res://Scenes/Game/Survivor/Data/skill_card_data.gd" id="1_skill_data"]
+[ext_resource type="Texture2D" uid="uid://8rtxlom7mw55" path="res://assets/sprites/survivor/skill/skill_1022.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_skill_data")
+id = 1022
+name = "右手大力气"
+value = 20.0
+rarity = 2
+description = "魔法锚点攻击速度提高{0}%"
+group_id = 11
+icon_texture = ExtResource("2_icon")

@@ -20,6 +20,8 @@ func _ready() -> void:
 		game_audio.call("setup_ingame_shader_button", continue_button)
 		game_audio.call("setup_ingame_shader_button", setting_button)
 		game_audio.call("setup_ingame_shader_button", quit_button)
+		if game_audio.has_method("setup_plain_button"):
+			game_audio.call("setup_plain_button", quit_button, "cancel")
 	continue_button.pressed.connect(continue_pressed.emit)
 	setting_button.pressed.connect(setting_pressed.emit)
 	quit_button.pressed.connect(quit_pressed.emit)

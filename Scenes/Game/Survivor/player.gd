@@ -11,13 +11,13 @@ signal level_ready
 const BULLET_SCENE: PackedScene = preload("res://Scenes/Game/Survivor/magic_bullet.tscn")
 const SkillDb = preload("res://Scenes/Game/Survivor/skill_database.gd")
 
-@export var move_speed: float = 310.0
+@export var move_speed: float = 356.5
 @export var acceleration: float = 1800.0
 @export var friction: float = 2200.0
 @export var max_hp: int = 100
-@export var base_attack_damage: int = 15
+@export var base_attack_damage: int = 20
 @export var base_attack_cooldown: float = 0.25
-@export var attack_range: float = 230.0
+@export var attack_range: float = 460.0
 @export var base_max_stamina: float = 100.0
 @export var stamina_per_growth_level: float = 10.0
 @export var stamina_drain_per_second: float = 12.0
@@ -26,11 +26,14 @@ const SkillDb = preload("res://Scenes/Game/Survivor/skill_database.gd")
 @export var damage_invulnerability_duration: float = 0.5
 
 @onready var visual_root: Node2D = $Visuals
+@onready var sprite: CanvasItem = $Visuals/Sprite2D
+@onready var animated_sprite: AnimatedSprite2D = $Visuals/Sprite2D as AnimatedSprite2D
 @onready var magic_pivot: Node2D = $GunPivot
 @onready var muzzle: Marker2D = $GunPivot/Muzzle
 @onready var attack_range_area: Area2D = $AttackRangeArea
 @onready var attack_range_shape: CollisionShape2D = $AttackRangeArea/CollisionShape2D
 @onready var attack_range_indicator: Node2D = $AttackRangeIndicator
+@onready var sprint_speed_lines: GPUParticles2D = $SprintSpeedLines
 @onready var sprint_bar: ProgressBar = $SprintBar
 
 const MAX_LEVEL: int = 15
@@ -55,11 +58,22 @@ var _pierce_enabled: bool = false
 var _pierce_falloff: float = 0.0
 var _damage_cooldown_timer: float = 0.0
 var _attack_range_targets: Dictionary = {}
+var _visual_base_position: Vector2 = Vector2.ZERO
+var _float_phase: float = 0.0
+var _knockback_velocity: Vector2 = Vector2.ZERO
+var _hit_flash_tween: Tween
+var _base_move_speed_for_growth: float = 0.0
+var _base_attack_cooldown_for_growth: float = 0.0
 
 
 # 初始化玩家状态，并推送第一帧 HUD 数据。
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	_base_move_speed_for_growth = move_speed
+	_base_attack_cooldown_for_growth = base_attack_cooldown
+	_visual_base_position = visual_root.position
+	if animated_sprite != null:
+		animated_sprite.play(&"idle")
 	current_hp = max_hp
 	max_stamina = base_max_stamina
 	current_stamina = max_stamina
@@ -79,6 +93,7 @@ func _ready() -> void:
 
 # 驱动移动、冲刺和自动攻击。
 func _physics_process(delta: float) -> void:
+	_update_visual_float(delta)
 	_damage_cooldown_timer = maxf(0.0, _damage_cooldown_timer - delta)
 	_prune_attack_range_targets()
 	if not _is_alive:
@@ -88,12 +103,16 @@ func _physics_process(delta: float) -> void:
 		return
 	var input_dir: Vector2 = Input.get_vector("left", "right", "up", "down")
 	_update_sprint_state(delta, input_dir)
+	_update_sprint_speed_lines(input_dir)
 	var current_speed: float = move_speed * (sprint_speed_multiplier if _is_sprinting else 1.0)
 	var target_velocity: Vector2 = input_dir * current_speed
 	if input_dir != Vector2.ZERO:
 		velocity = velocity.move_toward(target_velocity, acceleration * delta)
 	else:
 		velocity = velocity.move_toward(Vector2.ZERO, friction * delta)
+	if _knockback_velocity.length_squared() > 1.0:
+		velocity += _knockback_velocity
+		_knockback_velocity = _knockback_velocity.move_toward(Vector2.ZERO, friction * 1.8 * delta)
 	move_and_slide()
 	_update_facing(input_dir)
 	_update_magic_pivot()
@@ -109,10 +128,16 @@ func apply_saved_health(saved_hp: int, saved_max_hp: int) -> void:
 	health_changed.emit(current_hp, max_hp)
 
 
-# 应用局外体力成长。
-func apply_growth_modifiers(stamina_level: int) -> void:
+# 应用局外成长，体力、移动速度和攻击速度都从初始值重新计算。
+func apply_growth_modifiers(stamina_level: int, move_speed_level: int = 0, attack_speed_level: int = 0) -> void:
+	if _base_move_speed_for_growth <= 0.0:
+		_base_move_speed_for_growth = move_speed
+	if _base_attack_cooldown_for_growth <= 0.0:
+		_base_attack_cooldown_for_growth = base_attack_cooldown
 	max_stamina = maxf(1.0, base_max_stamina + float(maxi(0, stamina_level)) * stamina_per_growth_level)
 	current_stamina = max_stamina
+	move_speed = _base_move_speed_for_growth * (1.0 + float(maxi(0, move_speed_level)) * 0.05)
+	base_attack_cooldown = _base_attack_cooldown_for_growth / (1.0 + float(maxi(0, attack_speed_level)) * 0.05)
 	_emit_stamina_changed()
 	_refresh_sprint_bar()
 
@@ -134,7 +159,7 @@ func add_exp(amount: int) -> void:
 	var old_pending: int = pending_level_ups
 	total_exp += amount
 	_sync_exp_alias()
-	_sync_pending_level_ups()
+	_sync_level_from_total_exp()
 	exp_changed.emit(total_exp, get_required_exp_for_next_level(), level)
 	if pending_level_ups > old_pending:
 		level_ready.emit()
@@ -142,9 +167,9 @@ func add_exp(amount: int) -> void:
 
 # 消耗一次待选升级，并把所选技能记入本局状态。
 func level_up_with_skill(skill_id: int) -> void:
-	if pending_level_ups <= 0 or level >= MAX_LEVEL:
+	if pending_level_ups <= 0:
 		return
-	level = mini(MAX_LEVEL, level + 1)
+	heal_to_full()
 	if skill_id > 0:
 		selected_skill_ids.append(skill_id)
 	_sync_pending_level_ups()
@@ -178,11 +203,13 @@ func get_required_exp_for_next_level() -> int:
 
 
 # 承受伤害，并维持玩家受击冷却。
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, source_position: Vector2 = Vector2.INF) -> void:
 	if amount <= 0 or not _is_alive or _damage_cooldown_timer > 0.0:
 		return
 	_damage_cooldown_timer = damage_invulnerability_duration
 	current_hp = maxi(0, current_hp - amount)
+	_apply_knockback(source_position)
+	_flash_damage()
 	health_changed.emit(current_hp, max_hp)
 	var game_audio: Node = get_tree().root.get_node_or_null("GameAudio")
 	if game_audio != null:
@@ -199,6 +226,14 @@ func heal(amount: int) -> void:
 	if amount <= 0 or not _is_alive:
 		return
 	current_hp = mini(max_hp, current_hp + amount)
+	health_changed.emit(current_hp, max_hp)
+
+
+# 回满生命，供升级奖励和热栏血瓶调用。
+func heal_to_full() -> void:
+	if not _is_alive:
+		return
+	current_hp = max_hp
 	health_changed.emit(current_hp, max_hp)
 
 
@@ -226,9 +261,9 @@ func _emit_stamina_changed() -> void:
 # 只根据水平移动翻面，保留原本的竖直表现。
 func _update_facing(input_dir: Vector2) -> void:
 	if input_dir.x > 0.05:
-		visual_root.scale.x = 1.0
+		visual_root.scale.x = -absf(visual_root.scale.x)
 	elif input_dir.x < -0.05:
-		visual_root.scale.x = -1.0
+		visual_root.scale.x = absf(visual_root.scale.x)
 
 
 # 让法杖朝向最近敌人，没有敌人时朝向鼠标。
@@ -308,6 +343,8 @@ func _die() -> void:
 	_is_sprinting = false
 	if attack_range_indicator != null:
 		attack_range_indicator.call("set_active", false)
+	if sprint_speed_lines != null:
+		sprint_speed_lines.emitting = false
 	_emit_stamina_changed()
 	_refresh_sprint_bar()
 	died.emit()
@@ -320,10 +357,16 @@ func _sync_exp_alias() -> void:
 
 # 根据累计经验重新计算待选升级次数。
 func _sync_pending_level_ups() -> void:
+	pending_level_ups = maxi(0, level - 1 - selected_skill_ids.size())
+
+
+# 经验达到阈值时立即推进等级，技能选择次数单独累积到按钮上。
+func _sync_level_from_total_exp() -> void:
 	var unlocked_level: int = 1
 	while unlocked_level < MAX_LEVEL and total_exp >= _get_cumulative_exp_to_reach_level(unlocked_level + 1):
 		unlocked_level += 1
-	pending_level_ups = maxi(0, unlocked_level - level)
+	level = maxi(level, unlocked_level)
+	_sync_pending_level_ups()
 
 
 # 计算到目标等级为止的累计经验阈值。
@@ -344,6 +387,18 @@ func _refresh_sprint_bar() -> void:
 	sprint_bar.max_value = 1.0
 	sprint_bar.value = clampf(ratio, 0.0, 1.0)
 	sprint_bar.visible = _is_sprinting or current_stamina < max_stamina - 0.01
+
+
+# 冲刺时在玩家身后显示速度线粒子。
+func _update_sprint_speed_lines(input_dir: Vector2) -> void:
+	if sprint_speed_lines == null:
+		return
+	var should_emit: bool = _is_alive and _is_sprinting and input_dir.length_squared() > 0.01
+	sprint_speed_lines.emitting = should_emit
+	if not should_emit:
+		return
+	sprint_speed_lines.global_position = global_position + Vector2(0.0, -8.0)
+	sprint_speed_lines.rotation = input_dir.angle()
 
 
 # 让玩家的探测范围和实际攻击半径保持一致。
@@ -395,3 +450,35 @@ func _refresh_attack_range_indicator() -> void:
 # 判断一个进入探测区的物体是不是敌人。
 func _is_enemy_range_target(body: Node) -> bool:
 	return body != null and body.is_in_group("enemies")
+
+
+# 让玩家立绘和锚点一样保持轻微上下漂浮。
+func _update_visual_float(delta: float) -> void:
+	if visual_root == null:
+		return
+	_float_phase += delta * 2.6
+	visual_root.position = _visual_base_position + Vector2(0.0, sin(_float_phase) * 3.0)
+
+
+# 根据攻击来源施加短暂击退。
+func _apply_knockback(source_position: Vector2) -> void:
+	if source_position == Vector2.INF:
+		if velocity.length_squared() > 1.0:
+			_knockback_velocity = -velocity.normalized() * 180.0
+		return
+	var direction: Vector2 = source_position.direction_to(global_position)
+	if direction.length_squared() <= 0.01:
+		direction = Vector2.RIGHT
+	_knockback_velocity = direction.normalized() * 260.0
+
+
+# 受击时闪白并利用已有伤害冷却表现无敌时间。
+func _flash_damage() -> void:
+	if sprite == null:
+		return
+	if is_instance_valid(_hit_flash_tween):
+		_hit_flash_tween.kill()
+	sprite.modulate = Color.WHITE
+	_hit_flash_tween = create_tween()
+	_hit_flash_tween.tween_property(sprite, "modulate", Color(1.0, 1.0, 1.0, 0.48), 0.08)
+	_hit_flash_tween.tween_property(sprite, "modulate", Color(1.0, 1.0, 1.0, 1.0), maxf(0.08, damage_invulnerability_duration - 0.08))

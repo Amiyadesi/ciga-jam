@@ -66,6 +66,19 @@ text = "技能"
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="IconPanel" type="CenterContainer" parent="CardMargin/CardVBox"]
+custom_minimum_size = Vector2(0, 112)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="IconRect" type="TextureRect" parent="CardMargin/CardVBox/IconPanel"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
 [node name="EffectLabel" type="Label" parent="CardMargin/CardVBox" unique_id=2116842986]
 custom_minimum_size = Vector2(0, 128)
 layout_mode = 2

@@ -1,0 +1,31 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://dirfb3mn5o0gh"]
+
+[ext_resource type="Texture2D" uid="uid://cnx4k88a84y7b" path="res://assets/sprites/survivor/player/player_1.png" id="2_player1"]
+[ext_resource type="Texture2D" uid="uid://dxwp7g5s5j8n0" path="res://assets/sprites/survivor/player/player_2.png" id="3_player2"]
+[ext_resource type="Texture2D" uid="uid://befm5wxnrw3qq" path="res://assets/sprites/survivor/player/player_3.png" id="4_player3"]
+[ext_resource type="Texture2D" uid="uid://bv06q5phdydl3" path="res://assets/sprites/survivor/player/player_4.png" id="5_player4"]
+
+[resource]
+animations = [{
+"frames": [],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_player1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_player2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_player3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_player4")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 7.0
+}]

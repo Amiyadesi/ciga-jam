@@ -4,6 +4,7 @@ extends StaticBody2D
 
 signal health_changed(current_hp: int, max_hp: int)
 signal died
+signal open_detail_requested(house: Node)
 
 @export var data: Resource
 
@@ -21,14 +22,24 @@ var _is_alive: bool = true
 # 初始化房子生命值并注册分组。
 func _ready() -> void:
 	add_to_group("house")
+	input_pickable = true
 	_apply_data()
 	current_hp = max_hp
 	_refresh_health_bar()
 	health_changed.emit(int(round(current_hp)), int(round(max_hp)))
 
 
+# 点击房子时请求打开详情面板。
+func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> void:
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+		if mouse_event.button_index == MOUSE_BUTTON_LEFT and mouse_event.pressed:
+			open_detail_requested.emit(self)
+			get_viewport().set_input_as_handled()
+
+
 # 承受敌人伤害，血量归零后发出死亡信号。
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, _source_position: Vector2 = Vector2.INF) -> void:
 	if amount <= 0.0 or not _is_alive:
 		return
 	current_hp = maxf(0.0, current_hp - amount)
@@ -38,6 +49,16 @@ func take_damage(amount: float) -> void:
 	if is_zero_approx(current_hp):
 		_is_alive = false
 		died.emit()
+
+
+# 修补房子生命值，满血或死亡时返回失败。
+func repair(amount: float) -> bool:
+	if amount <= 0.0 or not _is_alive or current_hp >= max_hp:
+		return false
+	current_hp = minf(max_hp, current_hp + amount)
+	_refresh_health_bar()
+	health_changed.emit(int(round(current_hp)), int(round(max_hp)))
+	return true
 
 
 # 返回房子是否还存活。
