@@ -2,6 +2,8 @@
 class_name SavePlugin
 extends EditorPlugin
 const EDITOR_PANEL_SCENE := preload("res://addons/enhance_save_system/save_editor_panel.tscn")
+const AUTOLOAD_NAME := "SaveSystem"
+const AUTOLOAD_PATH := "core/save_system.gd"
 
 static var instance: SavePlugin
 
@@ -25,18 +27,9 @@ func _init() -> void:
 	instance = self
 
 
-# Registers the runtime save-system autoload when the plugin is enabled.
-func _enable_plugin() -> void:
-	add_autoload_singleton("SaveSystem", get_plugin_path() + "/core/save_system.gd")
-
-
-# Removes the runtime save-system autoload when the plugin is disabled.
-func _disable_plugin() -> void:
-	remove_autoload_singleton("SaveSystem")
-
-
 # Creates the authored bottom panel and starts the first slot scan.
 func _enter_tree() -> void:
+	_register_save_system_autoload()
 	_editor_panel = EDITOR_PANEL_SCENE.instantiate() as Control
 	_bind_editor_panel()
 	add_control_to_bottom_panel(_editor_panel, "存档管理")
@@ -45,9 +38,23 @@ func _enter_tree() -> void:
 
 # Removes the bottom panel created by this plugin instance.
 func _exit_tree() -> void:
+	_unregister_save_system_autoload()
 	if is_instance_valid(_editor_panel):
 		remove_control_from_bottom_panel(_editor_panel)
 		_editor_panel.queue_free()
+
+
+# Registers the core runtime singleton when the addon is enabled.
+func _register_save_system_autoload() -> void:
+	if not ProjectSettings.has_setting("autoload/%s" % AUTOLOAD_NAME):
+		add_autoload_singleton(AUTOLOAD_NAME, get_plugin_path().path_join(AUTOLOAD_PATH))
+
+
+# Removes only the autoload owned by this addon when it is disabled.
+func _unregister_save_system_autoload() -> void:
+	var configured_path := str(ProjectSettings.get_setting("autoload/%s" % AUTOLOAD_NAME, "")).trim_prefix("*")
+	if configured_path == get_plugin_path().path_join(AUTOLOAD_PATH):
+		remove_autoload_singleton(AUTOLOAD_NAME)
 
 
 # Binds signals and required nodes from the authored editor panel scene.

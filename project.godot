@@ -19,9 +19,9 @@ config/icon="uid://cf4mw7agqtlqn"
 
 [autoload]
 
-DialogueManager="*uid://c3rodes2l3gxb"
+DialogueManager="*res://addons/dialogue_manager/dialogue_manager.gd"
 PhantomCameraManager="*uid://duq6jhf6unyis"
-SaveSystem="*uid://bv1y5o6lgq7yi"
+SaveSystem="*res://addons/enhance_save_system/core/save_system.gd"
 SceneManager="*uid://byv4kvn38ec7g"
 GuiTransitions="*uid://lbwvyqfdnu7x"
 SoundManager="*uid://b2wllo35vbjaj"
@@ -102,7 +102,7 @@ sprint={
 
 [internationalization]
 
-locale/translations_pot_files=PackedStringArray("res://addons/dialogue_manager/dialogue_file/generated/hstory_demo.dialogue", "res://addons/dialogue_manager/dialogue_file/global.dialogue", "res://addons/dialogue_manager/dialogue_file/stage1.dialogue", "res://addons/dialogue_manager/dialogue_file/stage2.dialogue", "res://addons/dialogue_manager/dialogue_file/stage3.dialogue", "res://addons/dialogue_manager/dialogue_file/stage4.dialogue", "res://addons/dialogue_manager/dialogue_file/stage5.dialogue", "res://addons/dialogue_manager/modify_test/demo/demo_dialogue.dialogue", "res://addons/dialogue_manager/modify_test/demo/illustration_test.dialogue", "res://addons/dialogue_manager/modify_test/demo/scene1_tutorial.dialogue", "res://addons/dialogue_manager/modify_test/demo/scene2_characters.dialogue", "res://addons/dialogue_manager/modify_test/demo/scene3_branch.dialogue", "res://addons/dialogue_manager/modify_test/demo/scene3_branches.dialogue")
+locale/translations_pot_files=PackedStringArray("res://Dialogue/Content/global.dialogue", "res://Dialogue/Content/stage1.dialogue", "res://Dialogue/Content/stage2.dialogue", "res://Dialogue/Content/stage3.dialogue", "res://Dialogue/Content/stage4.dialogue", "res://Dialogue/Content/stage5.dialogue", "res://Dialogue/Examples/demo/demo_dialogue.dialogue", "res://Dialogue/Examples/demo/illustration_test.dialogue", "res://Dialogue/Examples/demo/scene1_tutorial.dialogue", "res://Dialogue/Examples/demo/scene2_characters.dialogue", "res://Dialogue/Examples/demo/scene3_branch.dialogue", "res://Dialogue/Examples/demo/scene3_branches.dialogue")
 
 [layer_names]
 

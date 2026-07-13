@@ -158,7 +158,7 @@ func apply_dialogue_line() -> void:
 		balloon.focus_mode = Control.FOCUS_NONE
 		responses_menu.show()
 	elif dialogue_line.time != "":
-		var time: float = dialogue_label.get_display_character_count() * 0.02 if dialogue_line.time == "auto" else dialogue_line.time.to_float()
+		var time: float = dialogue_line.text.length() * 0.02 if dialogue_line.time == "auto" else dialogue_line.time.to_float()
 		await get_tree().create_timer(time).timeout
 		next(dialogue_line.next_id)
 	else:

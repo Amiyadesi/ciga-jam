@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=15
+type="Resource"
+uid="uid://mewmwxfox4dc"
+path="res://.godot/imported/stage1.dialogue-0255ac23a53f1d7d0a6028ebe438625e.tres"
+
+[deps]
+
+source_file="res://Dialogue/Content/stage1.dialogue"
+dest_files=["res://.godot/imported/stage1.dialogue-0255ac23a53f1d7d0a6028ebe438625e.tres"]
+
+[params]
+
+defaults=true

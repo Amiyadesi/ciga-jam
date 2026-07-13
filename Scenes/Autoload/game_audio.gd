@@ -387,11 +387,12 @@ func _apply_runtime_volumes() -> void:
 	var master_volume: float = float(SettingsModule.instance.get_value("master_volume", 0.8))
 	var music_volume: float = float(SettingsModule.instance.get_value("music_volume", 0.8))
 	var sfx_volume: float = float(SettingsModule.instance.get_value("sfx_volume", 0.8))
+	var ui_volume: float = float(SettingsModule.instance.get_value("ui_volume", 0.8))
 	var ambient_volume: float = float(SettingsModule.instance.get_value("ambient_volume", 0.8))
 	_set_bus_volume_linear("Master", master_volume)
 	_set_bus_volume_linear("Music", music_volume)
 	_set_bus_volume_linear("SFX", sfx_volume)
-	_set_bus_volume_linear("UI", sfx_volume)
+	_set_bus_volume_linear("UI", ui_volume)
 	_set_bus_volume_linear("Ambient", ambient_volume)
 
 
